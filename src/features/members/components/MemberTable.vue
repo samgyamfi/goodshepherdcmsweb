@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MoreVertical, Eye, Pencil, CheckCircle, PauseCircle, Trash2 } from 'lucide-vue-next'
+import { UserStatus, MembershipStatus } from '@/enums'
 
 defineProps({
   members: {
@@ -49,39 +50,17 @@ function getInitials(firstName, lastName) {
   return (first + last).toUpperCase() || 'M'
 }
 
-// Get status badge variant
+// ── Status helpers — delegate to enums ────────────────────────────────────────
 function getStatusVariant(status) {
-  const variants = {
-    active: 'default',
-    pending: 'secondary',
-    pending_approval: 'secondary',
-    suspended: 'destructive',
-    inactive: 'outline',
-  }
-  return variants[status?.toLowerCase()] || 'outline'
+  return UserStatus.badgeVariant(status)
 }
 
-// Get status label
 function getStatusLabel(status) {
-  const labels = {
-    active: 'Active',
-    pending: 'Pending',
-    pending_approval: 'Pending Approval',
-    suspended: 'Suspended',
-    inactive: 'Inactive',
-  }
-  return labels[status?.toLowerCase()] || status
+  return UserStatus.label(status)
 }
 
-// Get membership status badge variant
 function getMembershipStatusVariant(status) {
-  const variants = {
-    active: 'default',
-    inactive: 'outline',
-    visitor: 'secondary',
-    transferred: 'secondary',
-  }
-  return variants[status?.toLowerCase()] || 'outline'
+  return MembershipStatus.badgeVariant(status)
 }
 
 // Handle action clicks
@@ -105,14 +84,13 @@ function handleDelete(member) {
   emit('delete', member)
 }
 
-// Check if member can be approved
+// Delegates to UserStatus enum — no raw strings
 function canApprove(member) {
-  return member.status === 'pending' || member.status === 'pending_approval'
+  return UserStatus.canApprove(member.status)
 }
 
-// Check if member can be suspended
 function canSuspend(member) {
-  return member.status === 'active'
+  return UserStatus.canSuspend(member.status)
 }
 </script>
 
@@ -219,7 +197,10 @@ function canSuspend(member) {
               </Badge>
             </TableCell>
             <TableCell>
-              <Badge :variant="getMembershipStatusVariant(member.membership_status)" class="capitalize">
+              <Badge
+                :variant="getMembershipStatusVariant(member.membership_status)"
+                class="capitalize"
+              >
                 {{ member.membership_status || 'Active' }}
               </Badge>
             </TableCell>
@@ -239,7 +220,8 @@ function canSuspend(member) {
               </div>
               <span v-else class="text-muted-foreground text-sm">-</span>
             </TableCell>
-            <TableCell v-if="canManage" class="text-right">
+            <!-- add canManage check if true show the dropdown menu -->
+            <TableCell class="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <Button variant="ghost" size="icon">

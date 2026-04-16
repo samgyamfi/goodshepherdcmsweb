@@ -16,7 +16,7 @@ export default [
   {
     path: '/dashboard/members/new',
     name: 'members-new',
-    component: () => import('./MembersView.vue'),
+    component: () => import('./MemberForm.vue'),
     meta: {
       requiresAuth: true,
       // roles: ['super_admin', 'admin', 'secretary'],
@@ -27,11 +27,22 @@ export default [
   {
     path: '/dashboard/members/:id/edit',
     name: 'members-edit',
-    component: () => import('./MembersView.vue'),
+    component: () => import('./MemberForm.vue'),
     meta: {
       requiresAuth: true,
       // roles: ['super_admin', 'admin', 'secretary'],
       breadcrumb: 'Edit Member',
+      parent: 'members',
+    },
+    props: true,
+  },
+  {
+    path: '/dashboard/members/:id/details',
+    name: 'members-details',
+    component: () => import('./MemberDetails.vue'),
+    meta: {
+      requiresAuth: true,
+      breadcrumb: 'Member Details',
       parent: 'members',
     },
     props: true,

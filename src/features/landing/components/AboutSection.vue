@@ -1,60 +1,80 @@
 <script setup>
-// Skinny component - no logic needed
+import { computed } from 'vue'
+
+const props = defineProps({
+  content: { type: Object, default: () => ({}) },
+})
+
+const about = computed(() => props.content)
 </script>
 
 <template>
-  <section id="about" class="py-20 lg:py-32 bg-slate-50">
+  <section id="about" class="py-16 lg:py-20 bg-slate-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         <!-- Text Content -->
-        <div class="order-2 lg:order-1 animate-slide-in-left">
-          <span class="text-amber-500 font-medium text-sm uppercase tracking-wider">
-            Welcome
-          </span>
+        <div class="animate-slide-in-left">
+          <span class="text-amber-500 font-medium text-sm uppercase tracking-wider">About Us</span>
           <h2 class="mt-4 font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 tracking-tight">
-            A Warm Welcome Awaits You
+            {{ about.title || 'A Place to Belong, Believe, and Become' }}
           </h2>
-          <p class="mt-6 text-lg text-slate-600 leading-relaxed">
-            The Assemblies of God in Ghana is a vibrant Pentecostal church
-            committed to evangelizing the lost, worshiping God, and discipling
-            believers. We believe in the power of the Holy Spirit to transform
-            lives and communities across Ghana and beyond.
-          </p>
-          <p class="mt-4 text-lg text-slate-600 leading-relaxed">
-            As part of the global Assemblies of God fellowship with over 88
-            million believers worldwide, we are united in our mission to see
-            every person experience the life-changing power of Jesus Christ.
-            Through Spirit-empowered worship and biblical teaching, we equip
-            believers for Kingdom work.
-          </p>
-          <a
-            href="#about"
-            class="mt-8 inline-flex items-center text-slate-900 font-medium hover:text-amber-600 transition-colors group"
-          >
-            Learn More About Us
-            <svg
-              class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
-          </a>
+
+          <p v-if="about.description" class="mt-4 text-slate-600 leading-relaxed">{{ about.description }}</p>
+
+          <div class="mt-8 space-y-6">
+            <div v-if="about.vision" class="bg-white p-6 rounded-lg shadow-sm">
+              <h3 class="text-lg font-semibold text-slate-900 mb-2">Our Vision</h3>
+              <p class="text-slate-600 leading-relaxed">{{ about.vision }}</p>
+            </div>
+
+            <div v-if="about.mission" class="bg-white p-6 rounded-lg shadow-sm">
+              <h3 class="text-lg font-semibold text-slate-900 mb-2">Our Mission</h3>
+              <p class="text-slate-600 leading-relaxed">{{ about.mission }}</p>
+            </div>
+          </div>
+
+          <!-- Core Values -->
+          <div v-if="about.values && about.values.length > 0" class="mt-8">
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">Our Values</h3>
+            <ul class="space-y-2">
+              <li
+                v-for="(value, index) in about.values"
+                :key="index"
+                class="flex items-start gap-3 text-slate-600"
+              >
+                <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+                <span>{{ value }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Core Beliefs -->
+          <div v-if="about.beliefs && about.beliefs.length > 0" class="mt-8">
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">What We Believe</h3>
+            <ul class="space-y-2">
+              <li
+                v-for="(belief, index) in about.beliefs"
+                :key="index"
+                class="flex items-start gap-3 text-slate-600"
+              >
+                <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ belief }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <!-- Image -->
-        <div class="order-1 lg:order-2 animate-slide-in-right">
-          <img
-            src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=800&q=80"
-            alt="Congregation gathering"
-            class="w-full aspect-[4/3] object-cover rounded-2xl hover:scale-105 transition-transform duration-500"
-          />
+        <!-- Visual -->
+        <div class="order-first lg:order-2 animate-slide-in-right">
+          <div class="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+            <svg class="w-32 h-32 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+          </div>
         </div>
       </div>
     </div>

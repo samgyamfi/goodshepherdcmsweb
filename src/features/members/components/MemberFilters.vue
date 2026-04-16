@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Search, X } from 'lucide-vue-next'
+import { UserStatus, MembershipStatus } from '@/enums'
 
 const props = defineProps({
   searchQuery: {
@@ -25,9 +26,13 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  rowsPerPage: {
+  perPage: {
     type: Number,
-    default: 10,
+    default: 15,
+  },
+  perPageOptions: {
+    type: Array,
+    required: true,
   },
   isSearching: {
     type: Boolean,
@@ -35,52 +40,44 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['search', 'status-change', 'membership-status-change', 'rows-per-page-change', 'clear-filters'])
+const emit = defineEmits([
+  'search',
+  'status-change',
+  'membership-status-change',
+  'per-page-change',
+  'clear-filters',
+])
 
-// Status options
-const statusOptions = [
-  { value: '', label: 'All Statuses' },
-  { value: 'active', label: 'Active' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'pending_approval', label: 'Pending Approval' },
-  { value: 'suspended', label: 'Suspended' },
-  { value: 'inactive', label: 'Inactive' },
-]
+// Status options — sourced from UserStatus enum
+const statusOptions = UserStatus.asOptions(true)
 
-// Membership status options
-const membershipStatusOptions = [
-  { value: '', label: 'All Membership Statuses' },
-  { value: 'active', label: 'Active Member' },
-  { value: 'inactive', label: 'Inactive' },
-  { value: 'visitor', label: 'Visitor' },
-  { value: 'transferred', label: 'Transferred' },
-]
+// Membership status options — sourced from MembershipStatus enum
+const membershipStatusOptions = MembershipStatus.asOptions(true)
 
-// Rows per page options
-const rowsPerPageOptions = [5, 10, 20, 50, 100]
-
-// Handle search input
+// Handle search input with v-model
 function handleSearchInput(event) {
-  emit('search', event.target.value)
+  emit('search', event.target.value?.trim() || '')
 }
 
 // Handle status change
 function handleStatusChange(value) {
-  emit('status-change', value)
+  emit('status-change', value === null ? '' : value)
 }
 
 // Handle membership status change
 function handleMembershipStatusChange(value) {
-  emit('membership-status-change', value)
+  emit('membership-status-change', value === null ? '' : value)
 }
 
 // Handle rows per page change
 function handleRowsPerPageChange(value) {
-  emit('rows-per-page-change', Number(value))
+  emit('per-page-change', Number(value))
 }
 
 // Check if any filters are active
-const hasActiveFilters = props.searchQuery || props.statusFilter || props.membershipStatusFilter
+function hasActiveFilters() {
+  return props.searchQuery || props.statusFilter || props.membershipStatusFilter
+}
 </script>
 
 <template>
@@ -89,8 +86,8 @@ const hasActiveFilters = props.searchQuery || props.statusFilter || props.member
     <div class="relative flex-1 max-w-sm">
       <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input
-        :value="searchQuery"
-        @input="handleSearchInput"
+        :model-value="searchQuery"
+        @keydown.enter="handleSearchInput"
         placeholder="Search members by name, phone, or email..."
         class="pl-10"
       />
@@ -98,6 +95,7 @@ const hasActiveFilters = props.searchQuery || props.statusFilter || props.member
         v-if="searchQuery"
         @click="emit('search', '')"
         class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        type="button"
       >
         <X class="h-4 w-4" />
       </button>
@@ -106,18 +104,14 @@ const hasActiveFilters = props.searchQuery || props.statusFilter || props.member
     <!-- Filters -->
     <div class="flex flex-wrap items-center gap-2">
       <!-- Status Filter -->
-      <Select :value="statusFilter" @update:model-value="handleStatusChange">
+      <Select :model-value="statusFilter || null" @update:model-value="handleStatusChange">
         <SelectTrigger class="w-[160px]">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Status</SelectLabel>
-            <SelectItem
-              v-for="option in statusOptions"
-              :key="option.value"
-              :value="option.value"
-            >
+            <SelectItem v-for="option in statusOptions" :key="option.value" :value="option.value">
               {{ option.label }}
             </SelectItem>
           </SelectGroup>
@@ -125,7 +119,10 @@ const hasActiveFilters = props.searchQuery || props.statusFilter || props.member
       </Select>
 
       <!-- Membership Status Filter -->
-      <Select :value="membershipStatusFilter" @update:model-value="handleMembershipStatusChange">
+      <Select
+        :model-value="membershipStatusFilter || null"
+        @update:model-value="handleMembershipStatusChange"
+      >
         <SelectTrigger class="w-[160px]">
           <SelectValue placeholder="Membership" />
         </SelectTrigger>
@@ -144,18 +141,14 @@ const hasActiveFilters = props.searchQuery || props.statusFilter || props.member
       </Select>
 
       <!-- Rows Per Page -->
-      <Select :value="String(rowsPerPage)" @update:model-value="handleRowsPerPageChange">
+      <Select :model-value="String(perPage)" @update:model-value="handleRowsPerPageChange">
         <SelectTrigger class="w-[120px]">
           <SelectValue placeholder="Rows" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Rows per page</SelectLabel>
-            <SelectItem
-              v-for="option in rowsPerPageOptions"
-              :key="option"
-              :value="String(option)"
-            >
+            <SelectItem v-for="option in perPageOptions" :key="option" :value="String(option)">
               {{ option }}
             </SelectItem>
           </SelectGroup>
@@ -164,11 +157,12 @@ const hasActiveFilters = props.searchQuery || props.statusFilter || props.member
 
       <!-- Clear Filters -->
       <Button
-        v-if="hasActiveFilters"
+        v-if="hasActiveFilters()"
         variant="outline"
         size="icon"
         @click="emit('clear-filters')"
         title="Clear all filters"
+        type="button"
       >
         <X class="h-4 w-4" />
       </Button>

@@ -45,8 +45,8 @@ const format = ref('excel')
  * Export filters
  */
 const filters = ref({
-  status: '',
-  membershipStatus: '',
+  status: 'all',
+  membershipStatus: 'all',
   search: '',
   dateFrom: null,
   dateTo: null,
@@ -69,7 +69,7 @@ const formatOptions = [
  * Status options
  */
 const statusOptions = [
-  { value: '', label: 'All Statuses' },
+  { value: 'all', label: 'All Statuses' },
   { value: 'active', label: 'Active' },
   { value: 'pending_approval', label: 'Pending Approval' },
   { value: 'suspended', label: 'Suspended' },
@@ -80,7 +80,7 @@ const statusOptions = [
  * Membership status options
  */
 const membershipStatusOptions = [
-  { value: '', label: 'All Membership Statuses' },
+  { value: 'all', label: 'All Membership Statuses' },
   { value: 'active', label: 'Active Member' },
   { value: 'inactive', label: 'Inactive' },
   { value: 'visitor', label: 'Visitor' },
@@ -92,8 +92,8 @@ const membershipStatusOptions = [
  */
 function clearFilters() {
   filters.value = {
-    status: '',
-    membershipStatus: '',
+    status: 'all',
+    membershipStatus: 'all',
     search: '',
     dateFrom: null,
     dateTo: null,
@@ -109,8 +109,8 @@ async function handleExport() {
   try {
     const exportData = {
       filters: {
-        status: filters.value.status || undefined,
-        membership_status: filters.value.membershipStatus || undefined,
+        status: filters.value.status !== 'all' ? filters.value.status : undefined,
+        membership_status: filters.value.membershipStatus !== 'all' ? filters.value.membershipStatus : undefined,
         search: filters.value.search || undefined,
         date_from: filters.value.dateFrom
           ? new Date(filters.value.dateFrom).toISOString().split('T')[0]

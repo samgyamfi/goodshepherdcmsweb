@@ -15,6 +15,7 @@ export const useMembersStore = defineStore(
     const currentMember = ref(null)
     const loading = ref(false)
     const error = ref(null)
+    const lastResponse = ref(null) // Store last API response for pagination parsing
     const pagination = ref({
       page: 1,
       perPage: 10,
@@ -29,7 +30,7 @@ export const useMembersStore = defineStore(
 
     const getPendingMembers = computed(() => {
       return members.value.filter(
-        (member) => member.status === 'pending' || member.status === 'pending_approval'
+        (member) => member.status === 'pending' || member.status === 'pending_approval',
       )
     })
 
@@ -52,16 +53,28 @@ export const useMembersStore = defineStore(
       try {
         const response = await membersService.getMembers(params)
 
-        if (response.status && response.data) {
-          members.value = response.data.data || []
+        // Store the full response for pagination parsing
+        lastResponse.value = response
 
-          // Update pagination from meta
-          if (response.meta) {
+        if (response.status && response.data) {
+          // Response structure: response.data.data.members = { data: [...], meta: {...}, links: {...} }
+          const membersData = response.data?.members || response.data.members || []
+
+          // Extract members array and pagination from the nested structure
+          if (membersData.data) {
+            members.value = membersData.data
+          } else if (Array.isArray(membersData)) {
+            members.value = membersData
+          }
+
+          // Update pagination from meta (nested inside members response)
+          const meta = membersData.meta || response.meta || {}
+          if (meta) {
             pagination.value = {
-              page: response.meta.current_page || 1,
-              perPage: response.meta.per_page || 10,
-              total: response.meta.total || 0,
-              lastPage: response.meta.last_page || 1,
+              page: meta.current_page || 1,
+              perPage: meta.per_page || 15,
+              total: meta.total || 0,
+              lastPage: meta.last_page || 1,
             }
           }
 
@@ -286,6 +299,7 @@ export const useMembersStore = defineStore(
       currentMember,
       loading,
       error,
+      lastResponse,
       pagination,
 
       // Getters

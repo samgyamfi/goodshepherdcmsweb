@@ -1,62 +1,78 @@
 <script setup>
-// Skinny component - static content
+import { computed } from 'vue'
+import { PlayCircle } from 'lucide-vue-next'
+
+const props = defineProps({
+  content: {
+    type: Object,
+    default: () => ({
+      title: null,
+      pastor_name: null,
+      date: null,
+      description: null,
+      image: null,
+      video_url: null,
+    }),
+  },
+  isDefault: { type: Boolean, default: false },
+})
+
+const hasContent = computed(() => !!props.content?.title)
+const shouldShow = computed(() => hasContent.value && !props.isDefault)
 </script>
 
 <template>
-  <section id="sermons" class="py-20 lg:py-32 bg-white">
+  <section v-if="shouldShow" id="sermons" class="py-20 lg:py-32 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         <!-- Image -->
         <div class="animate-slide-in-left">
-          <img
-            src="https://images.unsplash.com/photo-1544427920-c49ccfb85579?w=800&q=80"
-            alt="Pastor preaching sermon"
-            class="w-full aspect-video object-cover rounded-2xl hover:scale-105 transition-transform duration-500"
-          />
+          <div
+            class="relative w-full aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center"
+          >
+            <img
+              v-if="content.image"
+              :src="content.image"
+              alt="Sermon thumbnail"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+            />
+            <PlayCircle v-else class="w-20 h-20 text-slate-500" />
+            <a
+              v-if="content.video_url"
+              :href="content.video_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="absolute inset-0 flex items-center justify-center bg-slate-900/30 hover:bg-slate-900/50 transition-colors"
+              aria-label="Watch sermon"
+            >
+              <PlayCircle class="w-16 h-16 text-white drop-shadow-lg" />
+            </a>
+          </div>
         </div>
 
         <!-- Content -->
         <div class="animate-slide-in-right">
-          <span class="text-amber-500 font-medium text-sm uppercase tracking-wider">
-            Featured Message
-          </span>
+          <span class="text-amber-500 font-medium text-sm uppercase tracking-wider">Featured Message</span>
           <h2 class="mt-4 font-serif text-3xl sm:text-4xl font-semibold text-slate-900 tracking-tight">
-            Walking in Faith Through Uncertainty
+            {{ content.title }}
           </h2>
-          <div class="mt-4 flex items-center gap-4 text-slate-600">
-            <span>Pastor David Mitchell</span>
-            <span class="w-1 h-1 bg-slate-400 rounded-full"></span>
-            <span>January 12, 2026</span>
+          <div class="mt-4 flex flex-wrap items-center gap-2 text-slate-500 text-sm">
+            <span v-if="content.pastor_name">{{ content.pastor_name }}</span>
+            <span v-if="content.pastor_name && content.date" class="w-1 h-1 bg-slate-400 rounded-full"></span>
+            <span v-if="content.date">{{ content.date }}</span>
           </div>
-          <p class="mt-6 text-lg text-slate-600 leading-relaxed">
-            In times of uncertainty, our faith becomes the anchor that holds
-            us steady. Join us as we explore how to trust God's plan even when
-            the path ahead seems unclear.
+          <p v-if="content.description" class="mt-6 text-lg text-slate-600 leading-relaxed">
+            {{ content.description }}
           </p>
           <a
-            href="#sermons"
-            class="mt-8 inline-flex items-center px-6 py-3 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 transition-all duration-300"
+            v-if="content.video_url"
+            :href="content.video_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
           >
+            <PlayCircle class="w-5 h-5" />
             Watch Sermon
-            <svg
-              class="ml-2 w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
           </a>
         </div>
       </div>

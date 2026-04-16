@@ -8,7 +8,7 @@
 export function debounce(func, wait) {
   let timeout
 
-  return function executedFunction(...args) {
+  function executedFunction(...args) {
     const later = () => {
       clearTimeout(timeout)
       func(...args)
@@ -17,6 +17,14 @@ export function debounce(func, wait) {
     clearTimeout(timeout)
     timeout = setTimeout(later, wait)
   }
+
+  // Cancel a pending invocation
+  executedFunction.cancel = function () {
+    clearTimeout(timeout)
+    timeout = null
+  }
+
+  return executedFunction
 }
 
 /**

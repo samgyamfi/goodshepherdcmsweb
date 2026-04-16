@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth/auth'
+import { useChurchStore } from '@/stores/church'
 import router from '@/router'
+import { handleApiError } from '@/utils/errorHandler'
 
 /**
  * Create axios instance with base configuration
@@ -15,15 +17,21 @@ const api = axios.create({
 })
 
 /**
- * Request interceptor - adds auth token to requests
+ * Request interceptor - adds auth token and church UUID to requests
  */
 api.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore()
+    const churchStore = useChurchStore()
     const token = authStore.token
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    }
+
+    // Add current church UUID to headers if available
+    if (churchStore.church?.uuid) {
+      config.headers['X-Church-UUID'] = churchStore.church.uuid
     }
 
     return config
@@ -48,26 +56,8 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Handle 403 Forbidden
-    if (error.response?.status === 403) {
-      console.error('Access forbidden:', error.response.data?.message)
-    }
-
-    // Handle 422 Validation errors
-    if (error.response?.status === 422) {
-      // Validation errors are handled by the caller
-      return Promise.reject(error)
-    }
-
-    // Handle 500 Server errors
-    if (error.response?.status === 500) {
-      console.error('Server error:', error.response.data?.message)
-    }
-
-    // Handle network errors
-    if (!error.response) {
-      console.error('Network error: Please check your connection')
-    }
+    // Handle all other errors through error handler
+    handleApiError(error)
 
     return Promise.reject(error)
   },

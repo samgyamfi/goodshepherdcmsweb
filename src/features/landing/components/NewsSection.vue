@@ -2,23 +2,29 @@
 import NewsCard from './NewsCard.vue'
 
 defineProps({
-  news: {
-    type: Array,
-    required: true
-  }
+  news: { type: Array, default: () => [] },
+  title: { type: String, default: 'News & Announcements' },
+  isDefault: { type: Boolean, default: false },
 })
 </script>
 
 <template>
-  <section id="news" class="py-20 lg:py-32 bg-slate-900">
+  <section
+    v-if="news.length > 0 || !isDefault"
+    id="news"
+    class="py-20 lg:py-32 bg-slate-900"
+  >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Header -->
-      <h2 class="font-serif text-2xl sm:text-3xl font-semibold text-white tracking-tight">
-        Trending News
-      </h2>
+      <div class="text-center mb-12">
+        <span class="text-amber-400 font-medium text-sm uppercase tracking-wider">Stay Informed</span>
+        <h2 class="mt-4 font-serif text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+          {{ title }}
+        </h2>
+      </div>
 
-      <!-- News Cards Grid -->
-      <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+      <!-- News Grid -->
+      <div v-if="news.length > 0" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
         <NewsCard
           v-for="item in news"
           :key="item.title"
@@ -26,14 +32,9 @@ defineProps({
         />
       </div>
 
-      <!-- View All Button -->
-      <div class="mt-12 text-center">
-        <a
-          href="#news"
-          class="inline-flex items-center px-8 py-3 border border-slate-600 text-white font-medium rounded-lg hover:bg-slate-800 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-colors"
-        >
-          View All
-        </a>
+      <!-- Authenticated empty state -->
+      <div v-else class="text-center py-12 border border-dashed border-slate-700 rounded-xl">
+        <p class="text-slate-500">No news items published yet. Add them in Content Management → News.</p>
       </div>
     </div>
   </section>

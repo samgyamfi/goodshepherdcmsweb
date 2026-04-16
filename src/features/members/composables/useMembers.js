@@ -2,186 +2,151 @@ import { ref, computed } from 'vue'
 import { useMembersStore } from '@/stores/members/members'
 import { useAuthStore } from '@/stores/auth/auth'
 import { debounce } from '@/utils/debounce'
+import { usePagination } from '@/composables/usePagination'
 
 /**
- * Composable for members list management
- * Handles table data, pagination, search, and filtering
+ * Composable for members list management.
+ * Handles table data, pagination, search, and filtering.
+ *
+ * Pagination is owned by usePagination; after each fetch, state is synced
+ * from the store's parsed pagination object (store.pagination).
  */
 export function useMembers() {
   const membersStore = useMembersStore()
   const authStore = useAuthStore()
 
-  // Local state
-  const searchQuery = ref('')
-  const currentPage = ref(1)
-  const rowsPerPage = ref(10)
-  const statusFilter = ref('')
-  const membershipStatusFilter = ref('')
-  const isSearching = ref(false)
+  const {
+    currentPage,
+    lastPage,
+    perPage,
+    total,
+    from,
+    to,
+    perPageOptions,
+    goToPage,
+    setPerPage,
+  } = usePagination('members', 15)
 
-  // Computed
+  // Local filters
+  const searchQuery            = ref('')
+  const statusFilter           = ref('')
+  const membershipStatusFilter = ref('')
+  const isSearching            = ref(false)
+
+  // Reactive store wrappers
   const members = computed(() => membersStore.members)
   const loading = computed(() => membersStore.loading)
-  const pagination = computed(() => membersStore.pagination)
-  const error = computed(() => membersStore.error)
+  const error   = computed(() => membersStore.error)
 
-  const totalPages = computed(() => pagination.value.lastPage)
-  const totalItems = computed(() => pagination.value.total)
+  const canManageMembers = computed(() =>
+    authStore.hasAnyRole(['super_admin', 'admin', 'secretary'])
+  )
+  const canDeleteMembers = computed(() =>
+    authStore.hasRole('super_admin')
+  )
 
-  const canManageMembers = computed(() => {
-    return authStore.hasAnyRole(['super_admin', 'admin', 'secretary'])
-  })
-
-  const canDeleteMembers = computed(() => {
-    return authStore.hasRole('super_admin')
-  })
-
-  // Build query params for API
   function buildQueryParams() {
     const params = {
-      page: currentPage.value,
-      per_page: rowsPerPage.value,
+      page:    currentPage.value,
+      perPage: perPage.value,
     }
 
-    if (searchQuery.value.trim()) {
-      params.search = searchQuery.value.trim()
-    }
-
-    if (statusFilter.value) {
-      params.status = statusFilter.value
-    }
-
-    if (membershipStatusFilter.value) {
+    if (searchQuery.value?.trim()) params.search = searchQuery.value.trim()
+    if (statusFilter.value && statusFilter.value !== 'all') params.status = statusFilter.value
+    if (membershipStatusFilter.value && membershipStatusFilter.value !== 'all') {
       params.membership_status = membershipStatusFilter.value
     }
 
     return params
   }
 
-  // Fetch members with current filters
   async function loadMembers() {
     const params = buildQueryParams()
     await membersStore.fetchMembers(params)
+
+    // Sync pagination from what the store parsed out of the API response
+    const p = membersStore.pagination
+    if (p) {
+      currentPage.value = p.currentPage ?? p.current_page ?? 1
+      lastPage.value    = p.lastPage    ?? p.last_page    ?? 1
+      perPage.value     = p.perPage     ?? p.per_page     ?? 15
+      total.value       = p.total       ?? 0
+      from.value        = p.from        ?? 0
+      to.value          = p.to          ?? 0
+    }
   }
 
-  // Debounced search
   const debouncedSearch = debounce(() => {
-    currentPage.value = 1 // Reset to first page on search
+    goToPage(1)
     loadMembers()
     isSearching.value = false
   }, 300)
 
-  // Handle search input
   function handleSearch(query) {
     searchQuery.value = query
     isSearching.value = true
     debouncedSearch()
   }
 
-  // Handle page change
   function handlePageChange(page) {
-    if (page >= 1 && page <= totalPages.value) {
-      currentPage.value = page
-      loadMembers()
-    }
-  }
-
-  // Handle rows per page change
-  function handleRowsPerPageChange(perPage) {
-    rowsPerPage.value = perPage
-    currentPage.value = 1 // Reset to first page
+    goToPage(page)
     loadMembers()
   }
 
-  // Handle status filter change
+  function handleRowsPerPageChange(newPerPage) {
+    setPerPage(newPerPage)
+    loadMembers()
+  }
+
   function handleStatusFilterChange(status) {
     statusFilter.value = status
-    currentPage.value = 1
+    goToPage(1)
     loadMembers()
   }
 
-  // Handle membership status filter change
   function handleMembershipStatusFilterChange(status) {
     membershipStatusFilter.value = status
-    currentPage.value = 1
+    goToPage(1)
     loadMembers()
   }
 
-  // Clear all filters
   function clearFilters() {
-    searchQuery.value = ''
-    statusFilter.value = ''
+    searchQuery.value            = ''
+    statusFilter.value           = ''
     membershipStatusFilter.value = ''
-    currentPage.value = 1
+    goToPage(1)
     loadMembers()
   }
 
-  // Refresh members list
-  function refresh() {
-    loadMembers()
-  }
-
-  // Get status badge variant
-  function getStatusVariant(status) {
-    const variants = {
-      active: 'default',
-      pending: 'secondary',
-      pending_approval: 'secondary',
-      suspended: 'destructive',
-      inactive: 'outline',
-    }
-    return variants[status?.toLowerCase()] || 'outline'
-  }
-
-  // Get status label
-  function getStatusLabel(status) {
-    const labels = {
-      active: 'Active',
-      pending: 'Pending',
-      pending_approval: 'Pending Approval',
-      suspended: 'Suspended',
-      inactive: 'Inactive',
-    }
-    return labels[status?.toLowerCase()] || status
-  }
-
-  // Get membership status badge variant
-  function getMembershipStatusVariant(status) {
-    const variants = {
-      active: 'default',
-      inactive: 'outline',
-      visitor: 'secondary',
-      transferred: 'secondary',
-    }
-    return variants[status?.toLowerCase()] || 'outline'
-  }
-
-  // Initialize
   function initialize() {
     loadMembers()
   }
 
-  // Cleanup
+  // Cancel any pending debounced search to avoid state updates after teardown
   function dispose() {
     debouncedSearch.cancel()
   }
 
   return {
-    // State
+    // Filters
     searchQuery,
-    currentPage,
-    rowsPerPage,
     statusFilter,
     membershipStatusFilter,
     isSearching,
 
-    // Computed
+    // Pagination refs (named consistently for table components)
+    currentPage,
+    lastPage,
+    rowsPerPage: perPage,
+    perPageOptions,
+    totalItems: total,
+    from,
+    to,
+
+    // Data
     members,
     loading,
-    pagination,
     error,
-    totalPages,
-    totalItems,
     canManageMembers,
     canDeleteMembers,
 
@@ -193,13 +158,8 @@ export function useMembers() {
     handleStatusFilterChange,
     handleMembershipStatusFilterChange,
     clearFilters,
-    refresh,
     initialize,
+    refresh: loadMembers,
     dispose,
-
-    // Helpers
-    getStatusVariant,
-    getStatusLabel,
-    getMembershipStatusVariant,
   }
 }

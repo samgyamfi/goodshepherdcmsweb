@@ -9,6 +9,7 @@ import {
   Users2,
   BookOpen,
   UsersRound,
+  UserRound,
 } from 'lucide-vue-next'
 
 /**
@@ -78,6 +79,13 @@ export const navigationLinks = [
     path: '/dashboard/sermons',
     icon: BookOpen,
     roles: ['super-admin', 'admin', 'media-manager'],
+  },
+  {
+    id: 'church-transfers',
+    name: 'Church Transfers',
+    path: '/dashboard/church/transfers',
+    icon: UserRound,
+    roles: [], // All authenticated users
   },
   {
     id: 'settings',

@@ -1,76 +1,67 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth/auth'
+import { UserType } from '@/enums'
 
 const TAB_STORAGE_KEY = 'dashboard_tab_preference'
 
 /**
- * Dashboard tabs composable
- * Manages tab state and role-based default tab selection
+ * Dashboard tabs composable.
+ *
+ * - "My Dashboard" (personal)  → visible to all authenticated users
+ * - "Church Dashboard" (admin) → visible to super_admin and church_admin only
+ *
+ * Visibility is driven by UserType.canSeeChurchDashboard() rather than
+ * string literals, keeping the rule in one place alongside the enum.
  */
 export function useDashboardTabs() {
   const authStore = useAuthStore()
 
-  // Tab state
   const activeTab = ref('personal')
 
-  // Admin roles that should default to admin tab
-  const adminRoles = ['super-admin', 'admin']
-
   /**
-   * Check if user is an admin
+   * Whether the current user can see the Church Dashboard tab.
+   * Delegates entirely to the UserType enum — no raw strings here.
    */
-  const isAdmin = computed(() => {
-    return authStore.hasAnyRole(adminRoles)
-  })
+  const canSeeChurchTab = computed(() =>
+    UserType.canSeeChurchDashboard(authStore.user?.user_type),
+  )
 
-  /**
-   * Get the default tab based on user role
-   */
-  const getDefaultTab = () => {
-    // Check localStorage for saved preference
-    const savedTab = localStorage.getItem(TAB_STORAGE_KEY)
-    if (savedTab && ['personal', 'admin'].includes(savedTab)) {
-      return savedTab
-    }
+  function getDefaultTab() {
+    const saved = localStorage.getItem(TAB_STORAGE_KEY)
 
-    // Default based on role
-    return isAdmin.value ? 'admin' : 'personal'
+    // Only restore the saved tab if the user is still allowed to see it
+    if (saved === 'admin' && !canSeeChurchTab.value) return 'personal'
+
+    if (saved && ['personal', 'admin'].includes(saved)) return saved
+
+    // First-visit default: admins land on church overview, everyone else on personal
+    return canSeeChurchTab.value ? 'admin' : 'personal'
   }
 
-  /**
-   * Set active tab and persist preference
-   */
-  const setActiveTab = (tab) => {
+  function setActiveTab(tab) {
     activeTab.value = tab
     localStorage.setItem(TAB_STORAGE_KEY, tab)
   }
 
-  /**
-   * Initialize tab state
-   */
-  const initializeTabs = () => {
+  function initializeTabs() {
     activeTab.value = getDefaultTab()
   }
 
-  // Initialize on mount
-  onMounted(() => {
-    initializeTabs()
-  })
+  onMounted(initializeTabs)
 
-  // Watch for role changes and update default tab if no preference saved
+  // Re-evaluate when the user object resolves (e.g. after initializeAuth)
   watch(
-    () => authStore.userRoles,
+    () => authStore.user?.user_type,
     () => {
-      const savedTab = localStorage.getItem(TAB_STORAGE_KEY)
-      if (!savedTab) {
-        activeTab.value = getDefaultTab()
+      if (activeTab.value === 'admin' && !canSeeChurchTab.value) {
+        setActiveTab('personal')
       }
     },
   )
 
   return {
     activeTab,
-    isAdmin,
+    canSeeChurchTab,
     setActiveTab,
     initializeTabs,
   }

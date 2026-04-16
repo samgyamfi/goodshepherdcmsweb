@@ -10,9 +10,11 @@ import { membersService } from '@/services/members/members'
 import MemberTable from './components/MemberTable.vue'
 import MemberFilters from './components/MemberFilters.vue'
 import MembersPageHeader from './components/MembersPageHeader.vue'
-import MembersPagination from './components/MembersPagination.vue'
+import TablePagination from '@/components/ui/table/TablePagination.vue'
 import MemberActionDialogs from './components/MemberActionDialogs.vue'
 import { ExportMembersDialog, ImportMembersDialog } from './components/import-export'
+import MemberForm from './MemberForm.vue'
+import MemberDetails from './MemberDetails.vue'
 
 const membersStore = useMembersStore()
 
@@ -20,14 +22,17 @@ const membersStore = useMembersStore()
 const {
   searchQuery,
   currentPage,
+  lastPage,
   rowsPerPage,
+  perPageOptions,
   statusFilter,
   membershipStatusFilter,
   isSearching,
   members,
   loading,
-  totalPages,
   totalItems,
+  from,
+  to,
   canManageMembers,
   canDeleteMembers,
   canImportMembers,
@@ -206,12 +211,13 @@ onUnmounted(() => {
         :search-query="searchQuery"
         :status-filter="statusFilter"
         :membership-status-filter="membershipStatusFilter"
-        :rows-per-page="rowsPerPage"
+        :per-page="rowsPerPage"
+        :per-page-options="perPageOptions"
         :is-searching="isSearching"
         @search="handleSearch"
         @status-change="handleStatusFilterChange"
         @membership-status-change="handleMembershipStatusFilterChange"
-        @rows-per-page-change="handleRowsPerPageChange"
+        @per-page-change="handleRowsPerPageChange"
         @clear-filters="clearFilters"
       />
 
@@ -229,28 +235,42 @@ onUnmounted(() => {
       />
 
       <!-- Pagination -->
-      <MembersPagination
+      <TablePagination
         :current-page="currentPage"
-        :total-pages="totalPages"
-        :rows-per-page="rowsPerPage"
-        :total-items="totalItems"
+        :last-page="lastPage"
+        :per-page="rowsPerPage"
+        :total="totalItems"
+        :from="from"
+        :to="to"
         @page-change="handlePageChange"
-        @rows-per-page-change="handleRowsPerPageChange"
+        @per-page-change="handleRowsPerPageChange"
       />
     </div>
 
-    <!-- Member Action Dialogs -->
+    <!-- Member Form Sheet -->
+    <MemberForm
+      :is-open="isFormOpen"
+      :member="selectedMember"
+      :is-edit-mode="isEditMode"
+      @submit="handleFormSubmit"
+      @cancel="handleFormCancel"
+      @update:is-open="(value) => isFormOpen = value"
+    />
+
+    <!-- Member Details Sheet -->
+    <MemberDetails
+      :is-open="isDetailsOpen"
+      :member="selectedMember"
+      @close="handleDetailsClose"
+      @edit="handleEditMember"
+    />
+
+    <!-- Member Action Dialogs (for delete confirmation) -->
     <MemberActionDialogs
-      :is-form-open="isFormOpen"
-      :is-details-open="isDetailsOpen"
       :is-delete-dialog-open="isDeleteDialogOpen"
       :selected-member="selectedMember"
-      :is-edit-mode="isEditMode"
-      @close-form="handleFormCancel"
-      @close-details="handleDetailsClose"
       @close-delete="isDeleteDialogOpen = false"
       @confirm-delete="confirmDelete"
-      @submit-form="handleFormSubmit"
     />
 
     <!-- Export Dialog -->

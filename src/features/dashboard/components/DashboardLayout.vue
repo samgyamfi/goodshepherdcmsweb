@@ -1,10 +1,14 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useChurchStore } from '@/stores/church'
 import DashboardSidebar from './DashboardSidebar.vue'
 import DashboardHeader from './DashboardHeader.vue'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 
 const isMobileMenuOpen = ref(false)
+const isReady = ref(false)
+
+const churchStore = useChurchStore()
 
 function toggleMobileMenu() {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
@@ -13,6 +17,20 @@ function toggleMobileMenu() {
 function closeMobileMenu() {
   isMobileMenuOpen.value = false
 }
+
+/**
+ * On mount, fetch the extended church data (content settings, services,
+ * pastors) if it hasn't been loaded yet. The church store's `church` ref
+ * is already populated by the auth store immediately after login / hard
+ * refresh, so the guard has already confirmed a valid church context by
+ * the time this layout renders. No routing decisions are made here.
+ */
+onMounted(async () => {
+  if (!Object.keys(churchStore.contentSettings ?? {}).length) {
+    await churchStore.fetchChurchData()
+  }
+  isReady.value = true
+})
 </script>
 
 <template>
@@ -29,8 +47,8 @@ function closeMobileMenu() {
       <DashboardSidebar :is-mobile="false" />
     </aside>
 
-    <!-- Main Content -->
-    <div class="md:pl-64">
+    <!-- Main Content — rendered only after church data is ready -->
+    <div v-if="isReady" class="md:pl-64">
       <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
 
       <main class="p-4 md:p-6 lg:p-8">

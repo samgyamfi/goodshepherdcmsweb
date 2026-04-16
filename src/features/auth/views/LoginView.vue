@@ -2,6 +2,9 @@
 import AppLogo from '@/components/common/AppLogo.vue'
 import { useLogin } from '../composables/useLogin'
 
+const appName = import.meta.env.VITE_APP_NAME ?? 'Assemblies of God Ghana'
+const authBgImage = import.meta.env.VITE_AUTH_BG_IMAGE ?? 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1200&q=80'
+
 const {
   identifier,
   password,
@@ -20,7 +23,7 @@ const {
     <!-- Left Side - Image -->
     <div class="hidden lg:flex lg:w-1/2 relative">
       <img
-        src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1200&q=80"
+        :src="authBgImage"
         alt="Church community"
         class="absolute inset-0 w-full h-full object-cover"
       />
@@ -183,7 +186,7 @@ const {
       <!-- Footer -->
       <div class="px-8 sm:px-16 lg:px-24 py-6 text-center">
         <p class="text-slate-500 text-sm">
-          &copy; {{ new Date().getFullYear() }} Good Shepherd A/G. All Rights Reserved.
+          &copy; {{ new Date().getFullYear() }} {{ appName }}. All Rights Reserved.
         </p>
       </div>
     </div>

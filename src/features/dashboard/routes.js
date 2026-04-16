@@ -1,7 +1,3 @@
-/**
- * Dashboard Feature Routes
- * Protected routes requiring authentication
- */
 export default [
   {
     path: '/dashboard',

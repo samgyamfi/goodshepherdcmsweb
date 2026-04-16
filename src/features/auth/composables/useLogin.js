@@ -4,37 +4,49 @@ import { useAuthStore } from '@/stores/auth/auth'
 import { showToast } from '@/utils/toast'
 
 /**
- * Composable for login functionality
- * Handles form state, validation, and submission
+ * Composable for login functionality.
+ *
+ * Post-login routing
+ * ───────────────────
+ *   1. Honor ?redirect= unless it points at /dashboard without a church context.
+ *   2. Super admins → /admin
+ *   3. Users with an active church profile → /dashboard
+ *   4. Everyone else → /account/no-church (waiting state; login still succeeds)
  */
 export function useLogin() {
-  const router = useRouter()
+  const router    = useRouter()
   const authStore = useAuthStore()
 
-  // Form state
-  const identifier = ref('')
-  const password = ref('')
+  const identifier   = ref('')
+  const password     = ref('')
   const showPassword = ref(false)
-  const rememberMe = ref(false)
+  const rememberMe   = ref(false)
 
-  // Computed
   const isLoading = computed(() => authStore.isLoading)
-  const error = computed(() => authStore.error)
+  const error     = computed(() => authStore.error)
 
-  const isFormValid = computed(() => {
-    return identifier.value.trim().length > 0 && password.value.length >= 6
-  })
+  const isFormValid = computed(() =>
+    identifier.value.trim().length > 0 && password.value.length >= 6,
+  )
 
-  /**
-   * Toggle password visibility
-   */
   function togglePassword() {
     showPassword.value = !showPassword.value
   }
 
   /**
-   * Handle login form submission
+   * If the guard stored a dashboard redirect but this user has no church,
+   * sending them to /dashboard would immediately bounce to no-church anyway.
+   * Skip straight to the holding page for a single navigation.
    */
+  function shouldStripDashboardRedirect(redirectTo) {
+    if (!redirectTo || authStore.isSuperAdmin || authStore.hasActiveChurch) {
+      return false
+    }
+    const raw = Array.isArray(redirectTo) ? redirectTo[0] : redirectTo
+    const path = typeof raw === 'string' ? raw : raw?.path ?? ''
+    return path === '/dashboard' || path.startsWith('/dashboard/')
+  }
+
   async function handleLogin() {
     if (!isFormValid.value) {
       showToast.error('Please enter valid credentials')
@@ -43,45 +55,56 @@ export function useLogin() {
 
     const payload = {
       identifier: identifier.value.trim(),
-      password: password.value,
-      remember: rememberMe.value,
+      password:   password.value,
+      remember:   rememberMe.value,
     }
 
     const success = await authStore.login(payload)
 
-    if (success) {
-      // Clear welcome flag for new login
-      sessionStorage.removeItem('welcome_shown')
-      
-      // Redirect to dashboard or intended route
-      const redirectTo = router.currentRoute.value.query.redirect
-      router.push(redirectTo || { name: 'dashboard' })
-      // Welcome toast will show in DashboardView onMounted
-    } else {
+    if (!success) {
       showToast.error(authStore.error || 'Invalid credentials')
+      return
     }
+
+    sessionStorage.removeItem('welcome_shown')
+
+    const rawRedirect = router.currentRoute.value.query.redirect
+    const redirectTo = Array.isArray(rawRedirect) ? rawRedirect[0] : rawRedirect
+
+    if (redirectTo && !shouldStripDashboardRedirect(redirectTo)) {
+      router.push(redirectTo)
+      return
+    }
+    if (redirectTo && shouldStripDashboardRedirect(redirectTo)) {
+      router.push({ name: 'no-church' })
+      return
+    }
+
+    if (authStore.isSuperAdmin) {
+      router.push({ name: 'admin-dashboard' })
+      return
+    }
+
+    if (authStore.hasActiveChurch) {
+      router.push({ name: 'dashboard' })
+      return
+    }
+
+    router.push({ name: 'no-church' })
   }
 
-  /**
-   * Navigate to forgot password page
-   */
   function goToForgotPassword() {
     router.push({ name: 'forgot-password' })
   }
 
   return {
-    // Form state
     identifier,
     password,
     showPassword,
     rememberMe,
-
-    // Computed
     isLoading,
     error,
     isFormValid,
-
-    // Actions
     togglePassword,
     handleLogin,
     goToForgotPassword,

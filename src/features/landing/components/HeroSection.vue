@@ -1,56 +1,62 @@
 <script setup>
-import { useSmoothScroll } from '../composables/useSmoothScroll'
-import { useChurchStore } from '@/stores/church'
-import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useSmoothScroll } from '@/features/landing/composables/useSmoothScroll'
 
-const churchStore = useChurchStore()
-const { siteSettings } = storeToRefs(churchStore)
-const defaultVerse = ref({
-  reference: 'Matthew 18:20`',
-  text: 'For where two or three gather in my name, there am I with them.',
+const props = defineProps({
+  content: { type: Object, default: () => ({}) },
+  mediaItems: { type: Object, default: () => ({}) },
+  showDashboardBtn: { type: Boolean, default: false },
 })
-const defaultTitle = ref('Bible Engaged, Spirit Empowered, Mission Focused')
-const defaultBackgroundImage = ref(
-  'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1920&q=80',
-)
 
 const { scrollTo } = useSmoothScroll()
+
+const hero = computed(() => props.content)
+const backgroundImage = computed(() => props.mediaItems?.background_image ?? hero.value?.background_image ?? null)
 </script>
 
 <template>
-  <section class="relative min-h-[90vh] flex items-center justify-center">
-    <!-- Background Image -->
-    <div class="absolute inset-0">
+  <section
+    class="relative h-[600px] lg:h-[700px] flex items-center justify-center overflow-hidden"
+    :class="backgroundImage ? '' : 'bg-gradient-to-br from-amber-500 to-orange-600'"
+  >
+    <!-- Background image with overlay -->
+    <template v-if="backgroundImage">
       <img
-        :src="siteSettings.hero_management?.background_image ?? defaultBackgroundImage"
-        alt="Church interior with natural light"
-        class="w-full h-full object-cover"
+        :src="backgroundImage"
+        alt="Hero background"
+        class="absolute inset-0 w-full h-full object-cover"
       />
-      <div class="absolute inset-0 bg-slate-900/70"></div>
-    </div>
+      <div class="absolute inset-0 bg-slate-900/60"></div>
+    </template>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h1
-        class="font-serif text-4xl sm:text-5xl lg:text-7xl font-semibold text-white tracking-tight leading-tight animate-fade-in"
-      >
-        {{ siteSettings.hero_management?.title ?? defaultTitle }}
+    <div class="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
+      <h1 v-if="hero.title" class="text-4xl lg:text-6xl font-bold mb-6 drop-shadow-lg">
+        {{ hero.title }}
       </h1>
-      <p
-        class="mt-6 text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed animate-fade-in-delay"
-      >
-        {{ siteSettings.hero_management?.verse?.text ?? defaultVerse.text }}
-        <span class="block mt-2 text-base text-slate-400"
-          >— {{ siteSettings.hero_management?.verse?.reference ?? defaultVerse.reference }}</span
-        >
+      <p v-if="hero.subtitle" class="text-xl lg:text-2xl mb-8 opacity-90">
+        {{ hero.subtitle }}
       </p>
-      <a
-        href="#services"
-        class="mt-10 inline-flex items-center px-8 py-4 bg-amber-500 text-white font-semibold text-lg rounded-lg hover:bg-amber-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all duration-300 animate-fade-in-delay-2"
-        @click="scrollTo($event, '#services')"
+
+      <div v-if="hero.verse_reference" class="mb-8">
+        <p class="text-lg lg:text-xl italic opacity-90">"{{ hero.verse_text }}"</p>
+        <p class="mt-2 font-semibold">— {{ hero.verse_reference }}</p>
+      </div>
+
+      <RouterLink
+        v-if="showDashboardBtn"
+        :to="{ name: 'dashboard' }"
+        class="inline-block px-8 py-4 bg-white text-amber-600 font-semibold rounded-lg hover:bg-slate-100 transition-colors"
       >
-        Join Us This Sunday
+        Go to Dashboard
+      </RouterLink>
+      <a
+        v-else-if="hero.button_text"
+        href="#contact"
+        class="inline-block px-8 py-4 bg-white text-amber-600 font-semibold rounded-lg hover:bg-slate-100 transition-colors"
+        @click="scrollTo($event, '#contact')"
+      >
+        {{ hero.button_text }}
       </a>
     </div>
   </section>

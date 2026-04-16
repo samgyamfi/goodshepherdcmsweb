@@ -73,4 +73,44 @@ export default [
       breadcrumb: 'Groups',
     },
   },
+  {
+    path: '/dashboard/settings/content-management',
+    name: 'settings-content-management',
+    component: () => import('./views/SettingsContentManagementView.vue'),
+    meta: {
+      requiresAuth: true,
+      // roles: ['super-admin', 'church-admin'],
+      breadcrumb: 'Content Management',
+    },
+  },
+  {
+    path: '/dashboard/settings/pastors',
+    name: 'settings-pastors',
+    component: () => import('./views/SettingsPastorsView.vue'),
+    meta: {
+      requiresAuth: true,
+      // roles: ['super-admin', 'church-admin'],
+      breadcrumb: 'Pastors Management',
+    },
+  },
+  {
+    path: '/dashboard/settings/programs',
+    name: 'settings-programs',
+    component: () => import('./views/SettingsProgramsView.vue'),
+    meta: {
+      requiresAuth: true,
+      // roles: ['super-admin', 'church-admin'],
+      breadcrumb: 'Programs Management',
+    },
+  },
+  {
+    path: '/dashboard/settings/events',
+    name: 'settings-events',
+    component: () => import('./views/SettingsEventsView.vue'),
+    meta: {
+      requiresAuth: true,
+      // roles: ['super-admin', 'church-admin'],
+      breadcrumb: 'Events Management',
+    },
+  },
 ]

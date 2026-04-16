@@ -1,12 +1,11 @@
 <script setup>
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { ref } from 'vue'
 import { useChurchStore } from '@/stores/church'
 
-const churchStore = useChurchStore()
-const churchData = ref(churchStore.church)
-
 const props = defineProps({
+  logo: { type: String, default: null },
+  name: { type: String, default: null },
   size: {
     type: String,
     default: 'md',
@@ -17,45 +16,53 @@ const props = defineProps({
     default: 'dark',
     validator: (value) => ['light', 'dark'].includes(value),
   },
-  showText: {
-    type: Boolean,
-    default: true,
-  },
+  showText: { type: Boolean, default: true },
 })
 
-const sizeClasses = {
-  sm: 'h-8',
-  md: 'h-10',
-  lg: 'h-12',
-}
+const churchStore = useChurchStore()
 
-const textSizeClasses = {
-  sm: 'text-base',
-  md: 'text-lg',
-  lg: 'text-xl',
-}
+// Priority chain: explicit prop → church store → env var → hardcoded default
+const resolvedName = computed(
+  () =>
+    props.name ??
+    churchStore.church?.name ??
+    import.meta.env.VITE_APP_NAME ??
+    'Assemblies of God Ghana',
+)
+
+const resolvedLogo = computed(
+  () => props.logo ?? churchStore.church?.logo_url ?? import.meta.env.VITE_APP_LOGO ?? null,
+)
+
+const sizeClasses = { sm: 'h-8', md: 'h-10', lg: 'h-12' }
+const textSizeClasses = { sm: 'text-base', md: 'text-lg', lg: 'text-xl' }
 </script>
 
 <template>
-  <RouterLink
-    :to="{ name: 'home' }"
-    class="flex items-center gap-3 transition-opacity hover:opacity-80"
-  >
+  <RouterLink :to="{ name: 'home' }" class="flex items-center gap-3 transition-opacity hover:opacity-80">
     <img
-      src="/ag-logo.png"
-      :alt="churchData.name"
-      :class="sizeClasses[props.size]"
-      class="w-auto"
+      v-if="resolvedLogo"
+      :src="resolvedLogo"
+      :alt="resolvedName"
+      :class="sizeClasses[size]"
+      class="w-auto object-contain"
     />
+    <div
+      v-else
+      :class="sizeClasses[size]"
+      class="aspect-square rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+    >
+      {{ resolvedName.charAt(0).toUpperCase() }}
+    </div>
     <span
-      v-if="props.showText"
+      v-if="showText"
       :class="[
-        textSizeClasses[props.size],
-        props.variant === 'light' ? 'text-white' : 'text-slate-900',
+        textSizeClasses[size],
+        variant === 'light' ? 'text-white' : 'text-slate-900',
       ]"
       class="font-semibold"
     >
-      {{ churchData.name }}
+      {{ resolvedName }}
     </span>
   </RouterLink>
 </template>

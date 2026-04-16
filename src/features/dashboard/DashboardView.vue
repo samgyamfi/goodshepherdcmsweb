@@ -9,18 +9,13 @@ import StatsCard from './components/StatsCard.vue'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import {
-  TabsRoot,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from '@/components/ui/tabs'
+import { TabsRoot, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Calendar as CalendarIcon, FileText, User, Building, Wallet } from 'lucide-vue-next'
 import { dashboardCards } from './config/dashboardCards'
 import { personalDashboardCards } from './config/personalDashboardCards'
 
 const authStore = useAuthStore()
-const { activeTab, setActiveTab } = useDashboardTabs()
+const { activeTab, canSeeChurchTab, setActiveTab } = useDashboardTabs()
 
 const dateRange = ref({
   from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -43,12 +38,18 @@ onMounted(() => {
   <DashboardLayout>
     <!-- Tabs Navigation -->
     <TabsRoot v-model="activeTab" class="mb-8">
-      <TabsList class="grid w-full max-w-md grid-cols-2">
+      <TabsList :class="canSeeChurchTab ? 'grid w-full max-w-md grid-cols-2' : 'w-auto'">
+        <!-- Visible to all authenticated users with a church context -->
         <TabsTrigger value="personal" @click="setActiveTab('personal')">
           <User class="mr-2 h-4 w-4" />
           My Dashboard
         </TabsTrigger>
-        <TabsTrigger value="admin" @click="setActiveTab('admin')">
+        <!-- Visible only to super_admin and church_admin -->
+        <TabsTrigger
+          v-if="canSeeChurchTab"
+          value="admin"
+          @click="setActiveTab('admin')"
+        >
           <Building class="mr-2 h-4 w-4" />
           Church Dashboard
         </TabsTrigger>
@@ -61,9 +62,7 @@ onMounted(() => {
           <h1 class="text-2xl font-bold text-foreground mb-2">
             Welcome back, {{ authStore.fullName }}! 👋
           </h1>
-          <p class="text-muted-foreground">
-            Here's an overview of your personal church activity
-          </p>
+          <p class="text-muted-foreground">Here's an overview of your personal church activity</p>
         </div>
 
         <!-- Personal Stats Cards -->
@@ -96,10 +95,7 @@ onMounted(() => {
                 </div>
                 <span class="font-semibold text-green-600">GH₵ 500</span>
               </div>
-              <div
-                v-if="false"
-                class="text-center text-muted-foreground py-4"
-              >
+              <div v-if="false" class="text-center text-muted-foreground py-4">
                 No recent payments
               </div>
             </div>
@@ -120,10 +116,7 @@ onMounted(() => {
                 </div>
                 <span class="text-green-600">✓ Present</span>
               </div>
-              <div
-                v-if="false"
-                class="text-center text-muted-foreground py-4"
-              >
+              <div v-if="false" class="text-center text-muted-foreground py-4">
                 No recent attendance records
               </div>
             </div>
@@ -154,12 +147,8 @@ onMounted(() => {
       <TabsContent value="admin" class="mt-6">
         <!-- Welcome Header -->
         <div class="mb-8">
-          <h1 class="text-2xl font-bold text-foreground mb-2">
-            Church Dashboard 📊
-          </h1>
-          <p class="text-muted-foreground">
-            Church-wide statistics and analytics
-          </p>
+          <h1 class="text-2xl font-bold text-foreground mb-2">Church Dashboard 📊</h1>
+          <p class="text-muted-foreground">Church-wide statistics and analytics</p>
         </div>
 
         <!-- Filters and Actions -->
@@ -214,9 +203,7 @@ onMounted(() => {
           <!-- Financial Overview -->
           <div class="rounded-lg border bg-card p-6">
             <h3 class="text-lg font-semibold mb-2">Financial Overview</h3>
-            <p class="text-sm text-muted-foreground mb-4">
-              Monthly income breakdown by category
-            </p>
+            <p class="text-sm text-muted-foreground mb-4">Monthly income breakdown by category</p>
             <div class="flex items-center justify-center h-64 bg-muted/50 rounded-lg">
               <p class="text-muted-foreground">Bar Chart Placeholder</p>
             </div>
@@ -227,9 +214,7 @@ onMounted(() => {
         <div class="grid gap-6 md:grid-cols-3">
           <div class="rounded-lg border bg-card p-6">
             <h3 class="text-lg font-semibold mb-2">Member Growth</h3>
-            <p class="text-sm text-muted-foreground mb-4">
-              New members joined over the past year
-            </p>
+            <p class="text-sm text-muted-foreground mb-4">New members joined over the past year</p>
             <div class="flex items-center justify-center h-48 bg-muted/50 rounded-lg">
               <p class="text-muted-foreground">Line Chart Placeholder</p>
             </div>
@@ -237,9 +222,7 @@ onMounted(() => {
 
           <div class="rounded-lg border bg-card p-6">
             <h3 class="text-lg font-semibold mb-2">Service Attendance</h3>
-            <p class="text-sm text-muted-foreground mb-4">
-              Distribution across Sunday services
-            </p>
+            <p class="text-sm text-muted-foreground mb-4">Distribution across Sunday services</p>
             <div class="flex items-center justify-center h-48 bg-muted/50 rounded-lg">
               <p class="text-muted-foreground">Pie Chart Placeholder</p>
             </div>
@@ -247,9 +230,7 @@ onMounted(() => {
 
           <div class="rounded-lg border bg-card p-6">
             <h3 class="text-lg font-semibold mb-2">Ministry Participation</h3>
-            <p class="text-sm text-muted-foreground mb-4">
-              Active members in each ministry
-            </p>
+            <p class="text-sm text-muted-foreground mb-4">Active members in each ministry</p>
             <div class="flex items-center justify-center h-48 bg-muted/50 rounded-lg">
               <p class="text-muted-foreground">Bar Chart Placeholder</p>
             </div>

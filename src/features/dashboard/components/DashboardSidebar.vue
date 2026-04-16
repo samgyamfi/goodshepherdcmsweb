@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Switch } from '@/components/ui/switch'
 import { User, Settings, LogOut, Moon, Sun } from 'lucide-vue-next'
+import ChurchSwitcher from './ChurchSwitcher.vue'
+import DashboardSwitcher from '@/features/admin/components/DashboardSwitcher.vue'
 
 defineProps({
   isMobile: {
@@ -51,10 +53,32 @@ function navigateTo(path) {
 
 <template>
   <div class="flex h-full flex-col border-r bg-background">
+    <!-- Church Switcher -->
+    <div class="border-b p-3">
+      <ChurchSwitcher />
+    </div>
+
+    <!-- Dashboard Switcher — only rendered (and takes up space) for super admins -->
+    <div v-if="authStore.isSuperAdmin" class="border-b p-3">
+      <DashboardSwitcher />
+    </div>
+
     <!-- Logo & Church Name -->
     <div class="flex h-16 items-center gap-3 border-b px-4">
-      <img :src="churchStore.church.logo" alt="Good Shepherd A/G" class="h-8 w-auto" />
-      <span class="font-semibold text-foreground">{{ churchStore.church.name }}</span>
+      <img
+        v-if="churchStore.church?.logo"
+        :src="churchStore.church.logo"
+        alt="Church Logo"
+        class="h-8 w-auto"
+      />
+      <div v-else class="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
+        <span class="text-sm font-bold text-primary-foreground">
+          {{ churchStore.churchInitials }}
+        </span>
+      </div>
+      <span class="truncate font-semibold text-foreground">{{
+        churchStore.church?.name || 'Church'
+      }}</span>
     </div>
 
     <!-- Navigation Links -->
