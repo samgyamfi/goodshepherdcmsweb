@@ -1,11 +1,32 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
+import { computed } from 'vue'
 import { settingsLinks } from '../config/settingsLinks'
+import { useAuthStore } from '@/stores/auth/auth'
+import { typedDashboardPath } from '@/utils/dashboardRoutes'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChevronRight, Settings } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
+
+function pathForCurrentShell(path) {
+  if (authStore.isSuperAdmin && route.path.startsWith('/dashboard')) {
+    return path
+  }
+
+  return typedDashboardPath(authStore.user?.user_type, path)
+}
+
+const visibleLinks = computed(() =>
+  settingsLinks
+    .filter((link) => !link.permissions?.length || authStore.canAny(link.permissions))
+    .map((link) => ({
+      ...link,
+      path: pathForCurrentShell(link.path),
+    })),
+)
 
 function isActive(path) {
   return route.path === path
@@ -29,7 +50,7 @@ function navigateTo(path) {
       <div class="p-2">
         <nav class="space-y-1">
           <a
-            v-for="link in settingsLinks"
+            v-for="link in visibleLinks"
             :key="link.id"
             :href="link.path"
             class="flex items-start gap-3 rounded-lg px-3 py-3 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"

@@ -5,11 +5,17 @@
 export default [
   {
     path: '/dashboard/welfare',
+    alias: [
+      '/church-admin/dashboard/welfare',
+      '/pastor/dashboard/welfare',
+      '/member/dashboard/welfare',
+      '/visitor/dashboard/welfare',
+    ],
     name: 'welfare',
     component: () => import('./WelfareView.vue'),
     meta: {
       requiresAuth: true,
-      // roles: ['super-admin', 'admin', 'welfare-admin'],
+      permissions: ['welfare.payments.view'],
       breadcrumb: 'Welfare',
     },
   },

@@ -18,7 +18,8 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { User, Settings, LogOut, Moon, Sun } from 'lucide-vue-next'
 import ChurchSwitcher from './ChurchSwitcher.vue'
-import DashboardSwitcher from '@/features/admin/components/DashboardSwitcher.vue'
+import DashboardSwitcher from '@/features/admin/dashboard/components/DashboardSwitcher.vue'
+import { typedDashboardPath } from '@/utils/dashboardRoutes'
 
 defineProps({
   isMobile: {
@@ -48,6 +49,14 @@ async function handleLogout() {
 function navigateTo(path) {
   router.push(path)
   emit('navigate')
+}
+
+function goToSettings() {
+  const path = authStore.isSuperAdmin && route.path.startsWith('/dashboard')
+    ? '/dashboard/settings'
+    : typedDashboardPath(authStore.user?.user_type, '/dashboard/settings')
+
+  router.push(path)
 }
 </script>
 
@@ -144,7 +153,7 @@ function navigateTo(path) {
               <User class="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem @click="router.push('/dashboard/settings')">
+            <DropdownMenuItem @click="goToSettings">
               <Settings class="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>

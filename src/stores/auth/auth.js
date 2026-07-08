@@ -8,6 +8,7 @@ import { useLandingPageStore } from '@/stores/landingPage'
 // time any function is invoked.
 import { useChurchStore } from '@/stores/church'
 import { UserType } from '@/enums'
+import { dashboardRouteNameForUserType, dashboardBaseForUserType } from '@/utils/dashboardRoutes'
 
 /**
  * Authentication Store
@@ -38,7 +39,11 @@ export const useAuthStore = defineStore(
       return `${user.value.first_name} ${user.value.last_name}`
     })
 
-    const userRoles = computed(() => user.value?.roles?.map((r) => r.name) ?? [])
+    const userRoles = computed(() =>
+      user.value?.roles?.map((role) => (typeof role === 'string' ? role : role.name)) ?? [],
+    )
+
+    const userPermissions = computed(() => user.value?.permissions ?? [])
 
     const userInitials = computed(() => {
       if (!user.value) return 'U'
@@ -50,12 +55,18 @@ export const useAuthStore = defineStore(
     /** Whether the current user is a super administrator */
     const isSuperAdmin = computed(() => user.value?.user_type === UserType.SUPER_ADMIN)
 
+    const dashboardRouteName = computed(() => dashboardRouteNameForUserType(user.value?.user_type))
+
+    const dashboardBasePath = computed(() => dashboardBaseForUserType(user.value?.user_type))
+
     /**
      * Whether the current user has an active church profile.
      * Derived from the login/me response, so the guard and useLogin can
      * use it synchronously after authentication resolves.
      */
     const hasActiveChurch = computed(() => !!user.value?.profile?.church)
+
+    const mustChangePassword = computed(() => !!user.value?.must_change_password)
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
@@ -116,6 +127,32 @@ export const useAuthStore = defineStore(
       }
     }
 
+    async function setInitialPassword(payload) {
+      isLoading.value = true
+      error.value = null
+
+      try {
+        const response = await authService.setInitialPassword(
+          payload.password,
+          payload.password_confirmation,
+        )
+
+        if (response.status) {
+          clearAuthData()
+          sessionStorage.removeItem('welcome_shown')
+          return true
+        }
+
+        error.value = response.message || 'Failed to set password'
+        return false
+      } catch (err) {
+        error.value = err.response?.data?.message || 'Failed to set password'
+        return false
+      } finally {
+        isLoading.value = false
+      }
+    }
+
     /**
      * Re-fetch the current user from /auth/me (called on hard refresh / new tab).
      * Fixes a previous bug where `user.value = response.data` was set instead of
@@ -147,14 +184,25 @@ export const useAuthStore = defineStore(
       }
     }
 
-    /** Check if user has a specific Spatie role */
-    function hasRole(role) {
-      return userRoles.value.includes(role)
+    /** Check if user has a specific Spatie permission */
+    function can(permission) {
+      if (isSuperAdmin.value) return true
+
+      return userPermissions.value.includes(permission)
     }
 
-    /** Check if user has any of the given Spatie roles */
-    function hasAnyRole(roles) {
-      return roles.some((role) => userRoles.value.includes(role))
+    /** Check if user has any of the given Spatie permissions */
+    function canAny(permissions) {
+      if (isSuperAdmin.value) return true
+
+      return permissions.some((permission) => userPermissions.value.includes(permission))
+    }
+
+    /** Check if user has all given Spatie permissions */
+    function canAll(permissions) {
+      if (isSuperAdmin.value) return true
+
+      return permissions.every((permission) => userPermissions.value.includes(permission))
     }
 
     /**
@@ -199,16 +247,22 @@ export const useAuthStore = defineStore(
       isAuthenticated,
       fullName,
       userRoles,
+      userPermissions,
       userInitials,
       isSuperAdmin,
+      dashboardRouteName,
+      dashboardBasePath,
       hasActiveChurch,
+      mustChangePassword,
 
       // Actions
       login,
       logout,
+      setInitialPassword,
       fetchUser,
-      hasRole,
-      hasAnyRole,
+      can,
+      canAny,
+      canAll,
       initializeAuth,
       clearAuthData,
     }

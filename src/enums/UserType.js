@@ -8,7 +8,6 @@
  *   UserType.label('super_admin')               // → 'Super Administrator'
  *   UserType.badgeVariant('church_admin')       // → 'default'
  *   UserType.adminTypes()                       // → ['super_admin', 'church_admin']
- *   UserType.canSeeChurchDashboard('pastor')    // → false
  *   UserType.asOptions()                        // → [{ value, label }, ...]
  */
 
@@ -54,13 +53,6 @@ export const UserType = Object.freeze({
    * Mirrors UserType::adminTypes().
    */
   adminTypes: () => [CASES.SUPER_ADMIN, CASES.CHURCH_ADMIN, CASES.PASTOR],
-
-  /**
-   * Whether a user type can see the Church Dashboard tab.
-   * Mirrors the back-end gate that protects church-scoped views.
-   */
-  canSeeChurchDashboard: (value) =>
-    [CASES.SUPER_ADMIN, CASES.CHURCH_ADMIN, CASES.PASTOR].includes(value),
 
   /**
    * Whether a user type can manage church-wide content.

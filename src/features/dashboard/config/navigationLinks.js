@@ -13,8 +13,8 @@ import {
 } from 'lucide-vue-next'
 
 /**
- * Dashboard navigation links configuration
- * Each link can have role-based access control
+ * Dashboard navigation links configuration.
+ * Each link can have permission-based access control.
  */
 export const navigationLinks = [
   {
@@ -22,77 +22,77 @@ export const navigationLinks = [
     name: 'Dashboard',
     path: '/dashboard',
     icon: LayoutDashboard,
-    roles: [], // Empty = all authenticated users
+    permissions: [],
   },
   {
     id: 'members',
     name: 'Members',
     path: '/dashboard/members',
     icon: Users,
-    // roles: ['super-admin', 'admin', 'member-manager'],
+    permissions: ['members.view_all'],
   },
   {
     id: 'attendance',
     name: 'Attendance',
     path: '/dashboard/attendance',
     icon: Calendar,
-    roles: ['super-admin', 'admin', 'attendance-manager'],
+    permissions: ['events.attendance'],
   },
   {
     id: 'tithes',
     name: 'Tithes & Offerings',
     path: '/dashboard/tithes',
     icon: DollarSign,
-    roles: ['super-admin', 'admin', 'finance-admin'],
+    permissions: ['dashboard.financial', 'transactions.view_all'],
   },
   {
     id: 'welfare',
     name: 'Welfare',
     path: '/dashboard/welfare',
     icon: Heart,
-    roles: ['super-admin', 'admin', 'welfare-admin'],
+    permissions: ['welfare.payments.view'],
   },
   {
     id: 'events',
     name: 'Events',
     path: '/dashboard/events',
     icon: CalendarDays,
-    roles: ['super-admin', 'admin', 'event-manager'],
+    permissions: ['events.view'],
   },
   {
     id: 'groups',
     name: 'Small Groups',
     path: '/dashboard/groups',
     icon: UsersRound,
-    roles: ['super-admin', 'admin', 'group-leader'],
+    permissions: ['groups.view'],
   },
   {
     id: 'ministries',
     name: 'Ministries',
     path: '/dashboard/ministries',
     icon: Users2,
-    roles: ['super-admin', 'admin'],
+    permissions: ['groups.view'],
   },
   {
     id: 'sermons',
     name: 'Sermons',
     path: '/dashboard/sermons',
     icon: BookOpen,
-    roles: ['super-admin', 'admin', 'media-manager'],
+    permissions: ['settings.view'],
   },
   {
     id: 'church-transfers',
     name: 'Church Transfers',
     path: '/dashboard/church/transfers',
     icon: UserRound,
-    roles: [], // All authenticated users
+    permissions: [],
   },
   {
     id: 'settings',
     name: 'Settings',
     path: '/dashboard/settings',
     icon: Settings,
-    roles: ['super-admin', 'admin'],
+    permissions: ['settings.view'],
   },
 ]
 

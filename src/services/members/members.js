@@ -114,4 +114,15 @@ export const membersService = {
     })
     return response.data
   },
+
+  /**
+   * Download the backend-generated member import template
+   * @returns {Promise<Blob>} - Excel template blob
+   */
+  async downloadImportTemplate() {
+    const response = await api.get('/members/import/template', {
+      responseType: 'blob',
+    })
+    return response.data
+  },
 }

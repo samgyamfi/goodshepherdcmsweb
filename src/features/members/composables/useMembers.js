@@ -39,10 +39,16 @@ export function useMembers() {
   const error   = computed(() => membersStore.error)
 
   const canManageMembers = computed(() =>
-    authStore.hasAnyRole(['super_admin', 'admin', 'secretary'])
+    authStore.canAny(['members.create', 'members.update'])
   )
   const canDeleteMembers = computed(() =>
-    authStore.hasRole('super_admin')
+    authStore.can('members.delete')
+  )
+  const canImportMembers = computed(() =>
+    authStore.can('members.import')
+  )
+  const canExportMembers = computed(() =>
+    authStore.can('members.export')
   )
 
   function buildQueryParams() {
@@ -149,6 +155,8 @@ export function useMembers() {
     error,
     canManageMembers,
     canDeleteMembers,
+    canImportMembers,
+    canExportMembers,
 
     // Actions
     loadMembers,

@@ -50,6 +50,17 @@ export const authService = {
   },
 
   /**
+   * Set password for generated-password accounts
+   */
+  async setInitialPassword(password, passwordConfirmation) {
+    const response = await api.post('/auth/set-initial-password', {
+      password,
+      password_confirmation: passwordConfirmation,
+    })
+    return response.data
+  },
+
+  /**
    * Refresh authentication token
    */
   async refreshToken() {

@@ -5,6 +5,20 @@
  */
 export default [
   {
+    path: '/super-admin',
+    component: () => import('./components/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+    redirect: { name: 'super-admin-dashboard' },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'super-admin-dashboard',
+        component: () => import('./dashboard/AdminDashboardView.vue'),
+        meta: { breadcrumb: 'Super Admin' },
+      },
+    ],
+  },
+  {
     path: '/admin',
     component: () => import('./components/AdminLayout.vue'),
     meta: { requiresAuth: true, requiresSuperAdmin: true },

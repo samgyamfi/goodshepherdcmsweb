@@ -1,7 +1,6 @@
 import { computed } from 'vue'
 import { useTransferRequestsStore } from '@/stores/transferRequests'
 import { useAuthStore } from '@/stores/auth/auth'
-import { UserType } from '@/enums'
 
 /**
  * Composable for managing church transfer requests.
@@ -13,11 +12,10 @@ export function useTransferRequests() {
 
   /**
    * Whether the current user can view and act on church-level requests.
-   * Only super_admin and church_admin have this capability.
-   * Delegates to UserType.canSeeChurchDashboard() — no raw strings.
+   * Driven by Spatie permissions exposed on the auth user.
    */
   const canViewChurchRequests = computed(() =>
-    UserType.canSeeChurchDashboard(authStore.user?.user_type),
+    authStore.canAny(['users.approve', 'users.suspend']),
   )
 
   return {

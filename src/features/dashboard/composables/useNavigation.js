@@ -1,14 +1,24 @@
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth/auth'
 import { navigationSections } from '../config/navigationLinks'
+import { typedDashboardPath } from '@/utils/dashboardRoutes'
 
 /**
  * Navigation composable
- * Filters navigation links based on user roles
+ * Filters navigation links based on Spatie permissions
  */
 export function useNavigation() {
-  // eslint-disable-next-line no-unused-vars
   const authStore = useAuthStore()
+  const route = useRoute()
+
+  function pathForCurrentShell(path) {
+    if (authStore.isSuperAdmin && route.path.startsWith('/dashboard')) {
+      return path
+    }
+
+    return typedDashboardPath(authStore.user?.user_type, path)
+  }
 
   /**
    * Filter navigation sections based on user roles
@@ -17,13 +27,13 @@ export function useNavigation() {
     return navigationSections.map((section) => ({
       ...section,
       links: section.links.filter((link) => {
-        // Empty roles array means accessible to all authenticated users
-        if (link.roles?.length === 0 || !link.roles) return true
+        if (link.permissions?.length === 0 || !link.permissions) return true
 
-        // Check if user has any of the required roles
-        // return authStore.hasAnyRole(link.roles)
-        return true
-      }),
+        return authStore.canAny(link.permissions)
+      }).map((link) => ({
+        ...link,
+        path: pathForCurrentShell(link.path),
+      })),
     }))
   })
 

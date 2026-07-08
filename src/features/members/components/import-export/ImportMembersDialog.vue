@@ -11,6 +11,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { FileUpload } from '@/components/ui/file-upload'
 import { FileUp, Download, AlertCircle } from 'lucide-vue-next'
+import { membersService } from '@/services/members/members'
+import { showToast } from '@/utils/toast'
 
 defineProps({
   isOpen: {
@@ -30,6 +32,7 @@ const selectedFile = ref(null)
  * Loading state
  */
 const isImporting = ref(false)
+const isDownloadingTemplate = ref(false)
 
 /**
  * Handle import
@@ -62,26 +65,23 @@ function handleClose() {
 /**
  * Download template
  */
-function downloadTemplate() {
-  // Create a simple Excel template for download
-  const templateData = [
-    ['First Name', 'Last Name', 'Phone', 'Email', 'Date of Birth', 'Gender', 'Marital Status', 'Occupation', 'WhatsApp Number', 'Address', 'Digital Address', 'City', 'State', 'Country', 'Baptism Date', 'Membership Status', 'Membership Date', 'Spiritual Gifts', 'Ministry Interests'],
-    ['John', 'Doe', '+233555123456', 'john@example.com', '1990-01-15', 'male', 'married', 'Teacher', '+233555123456', '123 Main St', 'GH-123-4567', 'Accra', 'Greater Accra', 'Ghana', '2020-05-10', 'active', '2020-05-10', 'Teaching, Leadership', 'Youth Ministry'],
-    ['Jane', 'Smith', '+233555789012', 'jane@example.com', '1985-03-22', 'female', 'single', 'Nurse', '+233555789012', '456 Church Rd', 'GH-456-7890', 'Kumasi', 'Ashanti', 'Ghana', '', 'visitor', '', 'Helping, Counseling', 'Counseling Ministry'],
-  ]
+async function downloadTemplate() {
+  isDownloadingTemplate.value = true
 
-  // Create CSV content
-  const csvContent = templateData
-    .map((row) => row.map((cell) => `"${cell}"`).join(','))
-    .join('\n')
-
-  // Create download link
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'members_import_template.csv'
-  link.click()
-  URL.revokeObjectURL(link.href)
+  try {
+    const blob = await membersService.downloadImportTemplate()
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'members_import_template.xlsx'
+    link.click()
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Template download error:', error)
+    showToast.error('Could not download import template')
+  } finally {
+    isDownloadingTemplate.value = false
+  }
 }
 </script>
 
@@ -134,10 +134,11 @@ function downloadTemplate() {
             type="button"
             variant="outline"
             size="sm"
+            :disabled="isDownloadingTemplate"
             @click="downloadTemplate"
           >
             <Download class="mr-2 h-4 w-4" />
-            Download Template
+            {{ isDownloadingTemplate ? 'Downloading...' : 'Download Template' }}
           </Button>
         </div>
       </div>

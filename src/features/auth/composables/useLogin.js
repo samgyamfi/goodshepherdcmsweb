@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth/auth'
 import { showToast } from '@/utils/toast'
+import { isDashboardPath } from '@/utils/dashboardRoutes'
 
 /**
  * Composable for login functionality.
@@ -44,7 +45,7 @@ export function useLogin() {
     }
     const raw = Array.isArray(redirectTo) ? redirectTo[0] : redirectTo
     const path = typeof raw === 'string' ? raw : raw?.path ?? ''
-    return path === '/dashboard' || path.startsWith('/dashboard/')
+    return isDashboardPath(path)
   }
 
   async function handleLogin() {
@@ -68,6 +69,11 @@ export function useLogin() {
 
     sessionStorage.removeItem('welcome_shown')
 
+    if (authStore.mustChangePassword) {
+      router.push({ name: 'set-initial-password' })
+      return
+    }
+
     const rawRedirect = router.currentRoute.value.query.redirect
     const redirectTo = Array.isArray(rawRedirect) ? rawRedirect[0] : rawRedirect
 
@@ -81,12 +87,12 @@ export function useLogin() {
     }
 
     if (authStore.isSuperAdmin) {
-      router.push({ name: 'admin-dashboard' })
+      router.push({ name: authStore.dashboardRouteName })
       return
     }
 
     if (authStore.hasActiveChurch) {
-      router.push({ name: 'dashboard' })
+      router.push({ name: authStore.dashboardRouteName })
       return
     }
 

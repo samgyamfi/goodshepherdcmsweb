@@ -70,6 +70,10 @@ export const useChurchStore = defineStore(
 
         if (response.data.status) {
           church.value = response.data.data.church
+          if (response.data.data.user) {
+            const { useAuthStore } = await import('@/stores/auth/auth')
+            useAuthStore().user = response.data.data.user
+          }
           await fetchChurchData()
           return true
         }

@@ -15,6 +15,12 @@ export default [
     component: () => import('./views/ForgotPasswordView.vue'),
     meta: { requiresGuest: true },
   },
+  {
+    path: '/account/set-password',
+    name: 'set-initial-password',
+    component: () => import('./views/SetInitialPasswordView.vue'),
+    meta: { requiresAuth: true, allowWithoutChurch: true },
+  },
   /**
    * Authenticated users with no active church profile land here after login.
    * `allowWithoutChurch` tells the global guard not to bounce them away.

@@ -10,6 +10,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/roles',
     icon: Shield,
     description: 'Manage user roles and access control',
+    permissions: ['roles.view'],
   },
   {
     id: 'transaction-types',
@@ -17,6 +18,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/transaction-types',
     icon: Tag,
     description: 'Configure transaction categories',
+    permissions: ['settings.view'],
   },
   {
     id: 'groups',
@@ -24,6 +26,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/groups',
     icon: Users,
     description: 'Manage church groups',
+    permissions: ['settings.view'],
   },
   {
     id: 'countries',
@@ -31,6 +34,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/countries',
     icon: Globe,
     description: 'Configure localization settings',
+    permissions: ['settings.view'],
   },
   {
     id: 'content-management',
@@ -38,7 +42,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/content-management',
     icon: FileText,
     description: 'Manage church landing page content',
-    roles: ['super-admin', 'church-admin'], // Only admins
+    permissions: ['settings.update'],
   },
   {
     id: 'pastors',
@@ -46,7 +50,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/pastors',
     icon: UserRound,
     description: 'Manage church pastors and clergy',
-    roles: ['super-admin', 'church-admin'], // Only admins
+    permissions: ['settings.update'],
   },
   {
     id: 'programs',
@@ -54,7 +58,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/programs',
     icon: Calendar,
     description: 'Manage church programs and activities',
-    roles: ['super-admin', 'church-admin'], // Only admins
+    permissions: ['settings.update'],
   },
   {
     id: 'events',
@@ -62,7 +66,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/events',
     icon: CalendarDays,
     description: 'Manage church events and special services',
-    roles: ['super-admin', 'church-admin'], // Only admins
+    permissions: ['events.update'],
   },
   {
     id: 'welfare-settings',
@@ -70,6 +74,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/welfare-settings',
     icon: HandCoins,
     description: 'Configure welfare settings',
+    permissions: ['welfare.settings.view'],
   },
   {
     id: 'donation-categories',
@@ -77,6 +82,7 @@ export const settingsLinks = [
     path: '/dashboard/settings/donation-categories',
     icon: HandCoins,
     description: 'Configure donation categories',
+    permissions: ['settings.view'],
   },
   {
     id: 'expense-categories',
@@ -84,5 +90,6 @@ export const settingsLinks = [
     path: '/dashboard/settings/expense-categories',
     icon: Wallet,
     description: 'Configure expense categories',
+    permissions: ['settings.view'],
   },
 ]

@@ -11,10 +11,12 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const isSuperAdmin = computed(() => authStore.isSuperAdmin)
-const isInAdminDashboard = computed(() => route.path.startsWith('/admin'))
+const isInAdminDashboard = computed(() =>
+  route.path.startsWith('/admin') || route.path.startsWith('/super-admin'),
+)
 
 function switchToAdmin() {
-  router.push('/admin')
+  router.push('/super-admin/dashboard')
 }
 function switchToChurch() {
   router.push('/dashboard')

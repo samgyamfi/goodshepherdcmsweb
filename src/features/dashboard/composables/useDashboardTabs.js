@@ -1,6 +1,5 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth/auth'
-import { UserType } from '@/enums'
 
 const TAB_STORAGE_KEY = 'dashboard_tab_preference'
 
@@ -10,8 +9,7 @@ const TAB_STORAGE_KEY = 'dashboard_tab_preference'
  * - "My Dashboard" (personal)  → visible to all authenticated users
  * - "Church Dashboard" (admin) → visible to super_admin and church_admin only
  *
- * Visibility is driven by UserType.canSeeChurchDashboard() rather than
- * string literals, keeping the rule in one place alongside the enum.
+ * Visibility is driven by Spatie permissions exposed on the auth user.
  */
 export function useDashboardTabs() {
   const authStore = useAuthStore()
@@ -23,7 +21,7 @@ export function useDashboardTabs() {
    * Delegates entirely to the UserType enum — no raw strings here.
    */
   const canSeeChurchTab = computed(() =>
-    UserType.canSeeChurchDashboard(authStore.user?.user_type),
+    authStore.can('dashboard.admin'),
   )
 
   function getDefaultTab() {
@@ -51,7 +49,7 @@ export function useDashboardTabs() {
 
   // Re-evaluate when the user object resolves (e.g. after initializeAuth)
   watch(
-    () => authStore.user?.user_type,
+    () => authStore.userPermissions,
     () => {
       if (activeTab.value === 'admin' && !canSeeChurchTab.value) {
         setActiveTab('personal')

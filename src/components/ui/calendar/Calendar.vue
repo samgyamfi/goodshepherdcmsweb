@@ -54,6 +54,10 @@ const emits = defineEmits(['update:modelValue', 'update:placeholder'])
 function convertToRekaDate(date) {
   if (!date) return undefined
   if (date instanceof Date) return fromDate(date)
+  if (typeof date === 'string') {
+    const parsed = new Date(date)
+    return Number.isNaN(parsed.getTime()) ? undefined : fromDate(parsed)
+  }
   // If it's already a CalendarDate (has copy method), return as-is
   if (date && typeof date.copy === 'function') return date
   return undefined
@@ -75,9 +79,12 @@ function convertModelValueForReka(value) {
 
   if (props.mode === 'range') {
     // Handle object format { from: Date, to: Date }
-    if (value.from) {
-      const fromDateVal = convertToRekaDate(value.from)
-      const toDateVal = value.to ? convertToRekaDate(value.to) : fromDateVal
+    const rangeStart = value.from ?? value.start
+    const rangeEnd = value.to ?? value.end
+
+    if (rangeStart) {
+      const fromDateVal = convertToRekaDate(rangeStart)
+      const toDateVal = rangeEnd ? convertToRekaDate(rangeEnd) : fromDateVal
       return [fromDateVal, toDateVal].filter(Boolean)
     }
     // Handle array format [Date, Date]
@@ -98,6 +105,13 @@ function convertModelValueFromReka(value) {
   if (!value) return undefined
 
   if (props.mode === 'range' && Array.isArray(value) && value.length >= 1) {
+    if (props.modelValue && Object.prototype.hasOwnProperty.call(props.modelValue, 'start')) {
+      return {
+        start: convertToJsDate(value[0]),
+        end: value[1] ? convertToJsDate(value[1]) : convertToJsDate(value[0]),
+      }
+    }
+
     return {
       from: convertToJsDate(value[0]),
       to: value[1] ? convertToJsDate(value[1]) : convertToJsDate(value[0]),
@@ -111,7 +125,18 @@ function convertModelValueFromReka(value) {
   return convertToJsDate(value)
 }
 
-const delegatedProps = reactiveOmit(props, 'class', 'mode', 'modelValue', 'defaultValue')
+const delegatedProps = reactiveOmit(
+  props,
+  'class',
+  'mode',
+  'modelValue',
+  'defaultValue',
+  'placeholder',
+  'defaultPlaceholder',
+  'minValue',
+  'maxValue',
+  'multiple',
+)
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 
@@ -129,7 +154,11 @@ function handleUpdateModelValue(newValue) {
     v-bind="forwarded"
     :model-value="convertModelValueForReka(props.modelValue)"
     :default-value="props.defaultValue ? convertModelValueForReka(props.defaultValue) : undefined"
-    :multiple="props.mode !== 'range'"
+    :placeholder="convertToRekaDate(props.placeholder)"
+    :default-placeholder="convertToRekaDate(props.defaultPlaceholder)"
+    :min-value="convertToRekaDate(props.minValue)"
+    :max-value="convertToRekaDate(props.maxValue)"
+    :multiple="props.mode === 'range' ? false : props.multiple"
     @update:model-value="handleUpdateModelValue"
   >
     <CalendarHeader>
