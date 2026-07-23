@@ -1,9 +1,7 @@
 <script setup>
-import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth/auth'
 import { useThemeStore } from '@/stores/theme'
-import { useChurchStore } from '@/stores/church'
 import { adminNavigationSections } from '../config/adminNavigationLinks'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -18,7 +16,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Switch } from '@/components/ui/switch'
 import { ShieldCheck, User, Settings, LogOut, Moon, Sun } from 'lucide-vue-next'
-import DashboardSwitcher from '../dashboard/components/DashboardSwitcher.vue'
 
 defineProps({
   isMobile: { type: Boolean, default: false },
@@ -30,9 +27,6 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
-const churchStore = useChurchStore()
-
-const hasChurchContext = computed(() => !!churchStore.church)
 
 function isActive(link) {
   return link.exact
@@ -65,9 +59,6 @@ function navigateTo(path) {
     </div>
 
     <!-- ── Dashboard Switcher (only if super_admin has a church) ──── -->
-    <div v-if="hasChurchContext" class="border-b p-3">
-      <DashboardSwitcher />
-    </div>
 
     <!-- ── Navigation ────────────────────────────────────────────── -->
     <ScrollArea class="flex-1 py-4">

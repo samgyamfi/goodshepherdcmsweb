@@ -14,6 +14,7 @@ import {
   Settings,
   ChevronRight,
 } from 'lucide-vue-next'
+import RecentAuditActivity from '@/features/audit/components/RecentAuditActivity.vue'
 
 const router = useRouter()
 const adminStore = useAdminDashboardStore()
@@ -172,5 +173,7 @@ onMounted(async () => {
         </Card>
       </div>
     </div>
+
+    <RecentAuditActivity :system="true" />
   </div>
 </template>

@@ -9,7 +9,10 @@
  * @returns {string} Formatted date range string
  */
 export function formatDateRange(range) {
-  if (!range?.from) return 'Select date range'
+  const start = range?.from ?? range?.start
+  const end = range?.to ?? range?.end
+
+  if (!start) return 'Select date range'
 
   const formatter = new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
@@ -17,11 +20,11 @@ export function formatDateRange(range) {
     year: 'numeric',
   })
 
-  if (!range.to || range.from === range.to) {
-    return formatter.format(range.from)
+  if (!end || start.getTime() === end.getTime()) {
+    return formatter.format(start)
   }
 
-  return `${formatter.format(range.from)} - ${formatter.format(range.to)}`
+  return `${formatter.format(start)} - ${formatter.format(end)}`
 }
 
 /**

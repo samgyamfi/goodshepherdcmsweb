@@ -35,11 +35,14 @@ const emit = defineEmits(['close', 'approve', 'reject'])
 
 const rejectReason = ref('')
 
-watch(() => props.request, (newRequest) => {
-  if (newRequest) {
-    rejectReason.value = newRequest.reject_reason || ''
-  }
-})
+watch(
+  () => props.request,
+  (newRequest) => {
+    if (newRequest) {
+      rejectReason.value = newRequest.reject_reason || ''
+    }
+  },
+)
 
 const formatDate = computed(() => {
   if (!props.request?.created_at) return ''
@@ -68,21 +71,22 @@ function handleClose() {
 
 <template>
   <Sheet :open="isOpen" @update:open="handleClose">
-    <SheetContent class="sm:max-w-xl overflow-y-auto">
+    <SheetContent side="right" class="w-[95vw] overflow-y-auto sm:max-w-2xl lg:max-w-3xl">
       <SheetHeader>
         <SheetTitle class="flex items-center gap-2">
           <Building2 class="h-5 w-5" />
           Transfer Request Details
         </SheetTitle>
-        <SheetDescription>
-          Review and manage church transfer request
-        </SheetDescription>
+        <SheetDescription> Review and manage church transfer request </SheetDescription>
       </SheetHeader>
 
       <div v-if="request" class="space-y-6 py-4">
         <!-- Status Badge -->
         <div class="flex items-center justify-center">
-          <Badge :variant="TransferRequestStatus.badgeVariant(request.status)" class="text-sm px-4 py-2">
+          <Badge
+            :variant="TransferRequestStatus.badgeVariant(request.status)"
+            class="text-sm px-4 py-2"
+          >
             {{ TransferRequestStatus.label(request.status) }}
           </Badge>
         </div>
@@ -97,8 +101,12 @@ function handleClose() {
           </div>
           <div class="pl-6 space-y-1 text-sm">
             <p><span class="text-muted-foreground">Name:</span> {{ request.user?.full_name }}</p>
-            <p><span class="text-muted-foreground">Email:</span> {{ request.user?.email || 'N/A' }}</p>
-            <p><span class="text-muted-foreground">Phone:</span> {{ request.user?.phone || 'N/A' }}</p>
+            <p>
+              <span class="text-muted-foreground">Email:</span> {{ request.user?.email || 'N/A' }}
+            </p>
+            <p>
+              <span class="text-muted-foreground">Phone:</span> {{ request.user?.phone || 'N/A' }}
+            </p>
           </div>
         </div>
 
@@ -194,9 +202,7 @@ function handleClose() {
       </div>
 
       <SheetFooter>
-        <Button type="button" variant="outline" @click="handleClose">
-          Close
-        </Button>
+        <Button type="button" variant="outline" @click="handleClose"> Close </Button>
       </SheetFooter>
     </SheetContent>
   </Sheet>

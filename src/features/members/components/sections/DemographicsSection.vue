@@ -1,5 +1,6 @@
 <script setup>
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import {
   Select,
   SelectContent,
@@ -12,7 +13,7 @@ import {
 /**
  * DemographicsSection Component
  * Handles demographic information fields for member form
- * 
+ *
  * @props {Object} formData - Form data object
  * @props {Object} errors - Validation errors object
  * @emits {Event} update:formData - Emitted when form data changes
@@ -62,26 +63,25 @@ const maritalStatusOptions = [
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="space-y-2">
         <label for="date_of_birth" class="text-sm font-medium">Date of Birth</label>
-        <Input
+        <DatePicker
           id="date_of_birth"
           :model-value="formData.date_of_birth"
-          type="date"
+          placeholder="Select date of birth"
           @update:model-value="(value) => updateField('date_of_birth', value)"
         />
       </div>
       <div class="space-y-2">
         <label for="gender" class="text-sm font-medium">Gender</label>
-        <Select :model-value="formData.gender" @update:model-value="(value) => updateField('gender', value)">
+        <Select
+          :model-value="formData.gender"
+          @update:model-value="(value) => updateField('gender', value)"
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select gender" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem
-                v-for="option in genderOptions"
-                :key="option.value"
-                :value="option.value"
-              >
+              <SelectItem v-for="option in genderOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </SelectItem>
             </SelectGroup>
@@ -94,7 +94,10 @@ const maritalStatusOptions = [
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="space-y-2">
         <label for="marital_status" class="text-sm font-medium">Marital Status</label>
-        <Select :model-value="formData.marital_status" @update:model-value="(value) => updateField('marital_status', value)">
+        <Select
+          :model-value="formData.marital_status"
+          @update:model-value="(value) => updateField('marital_status', value)"
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select status" />
           </SelectTrigger>

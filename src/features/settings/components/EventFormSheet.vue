@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
+import { TimePicker } from '@/components/ui/time-picker'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
@@ -45,22 +47,26 @@ const formData = ref({
 })
 
 // Watch for event changes (edit mode)
-watch(() => props.event, (newEvent) => {
-  if (newEvent) {
-    formData.value = {
-      name: newEvent.name || '',
-      description: newEvent.description || '',
-      event_date: newEvent.event_date || '',
-      event_time: newEvent.event_time || '',
-      location: newEvent.location || '',
-      speaker: newEvent.speaker || '',
-      is_active: newEvent.is_active ?? true,
-      display_order: newEvent.display_order || 0,
+watch(
+  () => props.event,
+  (newEvent) => {
+    if (newEvent) {
+      formData.value = {
+        name: newEvent.name || '',
+        description: newEvent.description || '',
+        event_date: newEvent.event_date || '',
+        event_time: newEvent.event_time || '',
+        location: newEvent.location || '',
+        speaker: newEvent.speaker || '',
+        is_active: newEvent.is_active ?? true,
+        display_order: newEvent.display_order || 0,
+      }
+    } else {
+      resetForm()
     }
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 /**
  * Reset form to default values
@@ -96,7 +102,7 @@ function handleClose() {
 
 <template>
   <Sheet :open="isOpen" @update:open="handleClose">
-    <SheetContent class="sm:max-w-xl overflow-y-auto">
+    <SheetContent side="right" class="w-[95vw] overflow-y-auto sm:max-w-2xl lg:max-w-3xl">
       <SheetHeader>
         <SheetTitle class="flex items-center gap-2">
           <Calendar class="h-5 w-5" />
@@ -111,11 +117,7 @@ function handleClose() {
         <!-- Name -->
         <div class="space-y-2">
           <Label for="name">Event Name *</Label>
-          <Input
-            id="name"
-            v-model="formData.name"
-            placeholder="e.g., Easter Celebration"
-          />
+          <Input id="name" v-model="formData.name" placeholder="e.g., Easter Celebration" />
         </div>
 
         <!-- Description -->
@@ -134,19 +136,19 @@ function handleClose() {
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <Label for="event_date">Event Date *</Label>
-            <Input
+            <DatePicker
               id="event_date"
               v-model="formData.event_date"
-              type="date"
+              placeholder="Select event date"
             />
           </div>
 
           <div class="space-y-2">
             <Label for="event_time">Event Time</Label>
-            <Input
+            <TimePicker
               id="event_time"
               v-model="formData.event_time"
-              type="time"
+              placeholder="Select event time"
             />
           </div>
         </div>
@@ -155,20 +157,12 @@ function handleClose() {
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <Label for="location">Location</Label>
-            <Input
-              id="location"
-              v-model="formData.location"
-              placeholder="e.g., Main Sanctuary"
-            />
+            <Input id="location" v-model="formData.location" placeholder="e.g., Main Sanctuary" />
           </div>
 
           <div class="space-y-2">
             <Label for="speaker">Speaker</Label>
-            <Input
-              id="speaker"
-              v-model="formData.speaker"
-              placeholder="e.g., Pastor John Doe"
-            />
+            <Input id="speaker" v-model="formData.speaker" placeholder="e.g., Pastor John Doe" />
           </div>
         </div>
 
@@ -180,17 +174,12 @@ function handleClose() {
               {{ formData.is_active ? 'Event is active' : 'Event is inactive' }}
             </p>
           </div>
-          <Switch
-            id="is_active"
-            v-model="formData.is_active"
-          />
+          <Switch id="is_active" v-model="formData.is_active" />
         </div>
       </div>
 
       <SheetFooter>
-        <Button type="button" variant="outline" @click="handleClose">
-          Cancel
-        </Button>
+        <Button type="button" variant="outline" @click="handleClose"> Cancel </Button>
         <Button
           type="button"
           :disabled="isSaving || !formData.name || !formData.event_date"
@@ -214,9 +203,7 @@ function handleClose() {
             </svg>
             Saving...
           </span>
-          <span v-else>
-            {{ event ? 'Update' : 'Create' }} Event
-          </span>
+          <span v-else> {{ event ? 'Update' : 'Create' }} Event </span>
         </Button>
       </SheetFooter>
     </SheetContent>

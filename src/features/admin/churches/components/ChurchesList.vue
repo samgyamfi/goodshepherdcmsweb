@@ -32,16 +32,20 @@ import {
   Trash2,
   RotateCcw,
   ShieldAlert,
+  Headphones,
 } from 'lucide-vue-next'
 import helpers from '@/utils/generalHelpers'
+import { useAuthStore } from '@/stores/auth/auth'
+
+const authStore = useAuthStore()
 
 const props = defineProps({
   /** 'active' shows the normal list; 'deleted' shows trashed records */
-  mode:        { type: String,  default: 'active' },
-  churches:    { type: Array,   required: true },
-  loading:     { type: Boolean, default: false },
-  pagination:  { type: Object,  required: true },
-  searchQuery: { type: String,  default: '' },
+  mode: { type: String, default: 'active' },
+  churches: { type: Array, required: true },
+  loading: { type: Boolean, default: false },
+  pagination: { type: Object, required: true },
+  searchQuery: { type: String, default: '' },
 })
 
 const emit = defineEmits([
@@ -50,6 +54,7 @@ const emit = defineEmits([
   'search',
   'view-landing',
   'access-settings',
+  'support-access',
   'toggle-status',
   'delete',
   'restore',
@@ -62,13 +67,12 @@ const emit = defineEmits([
 // ── Bulk selection (keyed by UUID, never numeric id) ──────────────────────────
 const selectedUuids = ref([])
 
-const allSelected = computed(() =>
-  props.churches.length > 0 && props.churches.every((c) => selectedUuids.value.includes(c.uuid)),
+const allSelected = computed(
+  () =>
+    props.churches.length > 0 && props.churches.every((c) => selectedUuids.value.includes(c.uuid)),
 )
 
-const someSelected = computed(() =>
-  selectedUuids.value.length > 0 && !allSelected.value,
-)
+const someSelected = computed(() => selectedUuids.value.length > 0 && !allSelected.value)
 
 /**
  * The value bound to the header checkbox's :model-value.
@@ -120,7 +124,9 @@ function statusVariant(isActive) {
         <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           :model-value="searchQuery"
-          :placeholder="mode === 'deleted' ? 'Search deleted churches…' : 'Search by name, city or email…'"
+          :placeholder="
+            mode === 'deleted' ? 'Search deleted churches…' : 'Search by name, city or email…'
+          "
           class="pl-10"
           @update:model-value="emit('search', $event)"
         />
@@ -138,9 +144,7 @@ function statusVariant(isActive) {
         v-if="selectedUuids.length > 0"
         class="flex items-center gap-3 rounded-lg border border-border bg-muted/60 px-4 py-2.5"
       >
-        <span class="text-sm font-medium">
-          {{ selectedUuids.length }} selected
-        </span>
+        <span class="text-sm font-medium"> {{ selectedUuids.length }} selected </span>
 
         <div class="flex items-center gap-2 ml-auto">
           <template v-if="mode === 'active'">
@@ -170,9 +174,7 @@ function statusVariant(isActive) {
             </Button>
           </template>
 
-          <Button size="sm" variant="ghost" @click="clearSelection">
-            Cancel
-          </Button>
+          <Button size="sm" variant="ghost" @click="clearSelection"> Cancel </Button>
         </div>
       </div>
     </transition>
@@ -274,7 +276,9 @@ function statusVariant(isActive) {
               <TableCell>
                 <div class="text-sm space-y-0.5">
                   <div v-if="church.email" class="truncate max-w-[160px]">{{ church.email }}</div>
-                  <div v-if="church.phone" class="text-xs text-muted-foreground">{{ church.phone }}</div>
+                  <div v-if="church.phone" class="text-xs text-muted-foreground">
+                    {{ church.phone }}
+                  </div>
                   <span v-if="!church.email && !church.phone" class="text-muted-foreground">—</span>
                 </div>
               </TableCell>
@@ -310,7 +314,6 @@ function statusVariant(isActive) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" class="w-52">
-
                     <!-- Active mode actions -->
                     <template v-if="mode === 'active'">
                       <DropdownMenuItem class="gap-2" @click="$emit('view-landing', church)">
@@ -318,9 +321,13 @@ function statusVariant(isActive) {
                         View Landing Page
                       </DropdownMenuItem>
 
-                      <DropdownMenuItem class="gap-2" @click="$emit('access-settings', church)">
-                        <Settings class="h-4 w-4 text-muted-foreground" />
-                        Access Church Settings
+                      <DropdownMenuItem
+                        v-if="authStore.can('support.access')"
+                        class="gap-2"
+                        @click="$emit('support-access', church)"
+                      >
+                        <Headphones class="h-4 w-4 text-muted-foreground" />
+                        Access Church Dashboard
                       </DropdownMenuItem>
 
                       <DropdownMenuSeparator />
@@ -361,7 +368,6 @@ function statusVariant(isActive) {
                         Delete Permanently
                       </DropdownMenuItem>
                     </template>
-
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

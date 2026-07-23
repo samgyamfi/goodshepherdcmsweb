@@ -125,4 +125,27 @@ export const membersService = {
     })
     return response.data
   },
+
+  /**
+   * Get grouped direct/inherited permissions for a member.
+   * @param {string} uuid - Member UUID
+   * @returns {Promise<Object>} - Grouped permission payload
+   */
+  async getMemberPermissions(uuid) {
+    const response = await api.get(`/members/${uuid}/permissions`)
+    return response.data
+  },
+
+  /**
+   * Sync direct permissions for a member in the active church context.
+   * @param {string} uuid - Member UUID
+   * @param {Array<number>} permissionIds - Direct permission IDs
+   * @returns {Promise<Object>} - Updated grouped permission payload
+   */
+  async updateMemberPermissions(uuid, permissionIds) {
+    const response = await api.put(`/members/${uuid}/permissions`, {
+      permission_ids: permissionIds,
+    })
+    return response.data
+  },
 }

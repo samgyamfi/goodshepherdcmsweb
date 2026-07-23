@@ -50,6 +50,9 @@ export function useMembers() {
   const canExportMembers = computed(() =>
     authStore.can('members.export')
   )
+  const canAssignMemberPermissions = computed(() =>
+    authStore.can('permissions.assign')
+  )
 
   function buildQueryParams() {
     const params = {
@@ -157,6 +160,7 @@ export function useMembers() {
     canDeleteMembers,
     canImportMembers,
     canExportMembers,
+    canAssignMemberPermissions,
 
     // Actions
     loadMembers,

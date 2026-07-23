@@ -54,7 +54,7 @@ function navigateTo(path) {
 function goToSettings() {
   const path = authStore.isSuperAdmin && route.path.startsWith('/dashboard')
     ? '/dashboard/settings'
-    : typedDashboardPath(authStore.user?.user_type, '/dashboard/settings')
+    : typedDashboardPath(authStore.effectiveUserType, '/dashboard/settings')
 
   router.push(path)
 }
@@ -68,7 +68,7 @@ function goToSettings() {
     </div>
 
     <!-- Dashboard Switcher — only rendered (and takes up space) for super admins -->
-    <div v-if="authStore.isSuperAdmin" class="border-b p-3">
+    <div v-if="authStore.isSuperAdmin && !authStore.isSupportAccess" class="border-b p-3">
       <DashboardSwitcher />
     </div>
 

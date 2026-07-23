@@ -5,6 +5,7 @@ import {
   ShieldCheck,
   Settings,
   ArrowLeftRight,
+  ScrollText,
 } from 'lucide-vue-next'
 
 /**
@@ -44,6 +45,7 @@ export const adminNavigationSections = [
     label: 'System',
     links: [
       { id: 'roles', name: 'Roles & Permissions', path: '/admin/roles', icon: ShieldCheck },
+      { id: 'audit-logs', name: 'Audit Logs', path: '/admin/audit-logs', icon: ScrollText },
       { id: 'settings', name: 'System Settings', path: '/admin/settings', icon: Settings },
     ],
   },

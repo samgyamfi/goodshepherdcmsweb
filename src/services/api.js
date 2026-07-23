@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth/auth'
 import { useChurchStore } from '@/stores/church'
+import { useSupportAccessStore } from '@/stores/supportAccess'
 import router from '@/router'
 import { handleApiError } from '@/utils/errorHandler'
 
@@ -22,8 +23,11 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore()
+    const supportStore = useSupportAccessStore()
     const churchStore = useChurchStore()
-    const token = authStore.token
+    const supportToken = supportStore.token
+    const token = supportToken || authStore.token
+    config._supportAccessRequest = Boolean(supportToken)
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -48,9 +52,16 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const authStore = useAuthStore()
+    const supportStore = useSupportAccessStore()
 
-    // Handle 401 Unauthorized - logout and redirect to login
+    // A support-token failure restores the still-valid platform session.
     if (error.response?.status === 401) {
+      if (error.config?._supportAccessRequest || supportStore.isActive) {
+        await supportStore.restorePlatformContext()
+        await router.replace({ name: 'super-admin-dashboard', query: { support: 'expired' } })
+        return Promise.reject(error)
+      }
+
       authStore.logout()
       router.push({ name: 'login', query: { expired: 'true' } })
       return Promise.reject(error)

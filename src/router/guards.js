@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/auth/auth'
 import { useChurchStore } from '@/stores/church'
-import { requiresChurchContext } from '@/utils/dashboardRoutes'
+import { requiresChurchContext, typedDashboardPath } from '@/utils/dashboardRoutes'
 
 function resolveHome(authStore, churchStore) {
   if (authStore.isSuperAdmin && !churchStore.church) {
@@ -62,11 +62,17 @@ export async function authGuard(to) {
     return resolveHome(authStore, churchStore)
   }
 
-  if (to.meta.requiresSuperAdmin && !authStore.isSuperAdmin) {
+  if (authStore.isSupportAccess && to.path.startsWith('/super-admin/dashboard/')) {
+    const dashboardPath = to.path.replace('/super-admin/dashboard', '/dashboard')
+
+    return { path: typedDashboardPath(authStore.effectiveUserType, dashboardPath), replace: true }
+  }
+
+  if (to.meta.requiresSuperAdmin && (!authStore.isSuperAdmin || authStore.isSupportAccess)) {
     return resolveHome(authStore, churchStore)
   }
 
-  if (to.meta.userTypes?.length > 0 && !to.meta.userTypes.includes(authStore.user?.user_type)) {
+  if (to.meta.userTypes?.length > 0 && !to.meta.userTypes.includes(authStore.effectiveUserType)) {
     return resolveHome(authStore, churchStore)
   }
 

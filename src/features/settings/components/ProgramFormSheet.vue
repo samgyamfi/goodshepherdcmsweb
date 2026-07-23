@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TimePicker } from '@/components/ui/time-picker'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -66,23 +67,27 @@ const dayOptions = [
 ]
 
 // Watch for program changes (edit mode)
-watch(() => props.program, (newProgram) => {
-  if (newProgram) {
-    formData.value = {
-      name: newProgram.name || '',
-      description: newProgram.description || '',
-      schedule: newProgram.schedule || '',
-      day_of_week: newProgram.day_of_week || '',
-      time: newProgram.time || '',
-      location: newProgram.location || '',
-      leader: newProgram.leader || '',
-      is_active: newProgram.is_active ?? true,
-      display_order: newProgram.display_order || 0,
+watch(
+  () => props.program,
+  (newProgram) => {
+    if (newProgram) {
+      formData.value = {
+        name: newProgram.name || '',
+        description: newProgram.description || '',
+        schedule: newProgram.schedule || '',
+        day_of_week: newProgram.day_of_week || '',
+        time: newProgram.time || '',
+        location: newProgram.location || '',
+        leader: newProgram.leader || '',
+        is_active: newProgram.is_active ?? true,
+        display_order: newProgram.display_order || 0,
+      }
+    } else {
+      resetForm()
     }
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 /**
  * Reset form to default values
@@ -119,7 +124,7 @@ function handleClose() {
 
 <template>
   <Sheet :open="isOpen" @update:open="handleClose">
-    <SheetContent class="sm:max-w-xl overflow-y-auto">
+    <SheetContent side="right" class="w-[95vw] overflow-y-auto sm:max-w-2xl lg:max-w-3xl">
       <SheetHeader>
         <SheetTitle class="flex items-center gap-2">
           <Calendar class="h-5 w-5" />
@@ -134,11 +139,7 @@ function handleClose() {
         <!-- Name -->
         <div class="space-y-2">
           <Label for="name">Program Name *</Label>
-          <Input
-            id="name"
-            v-model="formData.name"
-            placeholder="e.g., Sunday Service"
-          />
+          <Input id="name" v-model="formData.name" placeholder="e.g., Sunday Service" />
         </div>
 
         <!-- Description -->
@@ -178,11 +179,7 @@ function handleClose() {
 
           <div class="space-y-2">
             <Label for="time">Time</Label>
-            <Input
-              id="time"
-              v-model="formData.time"
-              type="time"
-            />
+            <TimePicker id="time" v-model="formData.time" placeholder="Select program time" />
           </div>
         </div>
 
@@ -200,20 +197,12 @@ function handleClose() {
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <Label for="location">Location</Label>
-            <Input
-              id="location"
-              v-model="formData.location"
-              placeholder="e.g., Main Sanctuary"
-            />
+            <Input id="location" v-model="formData.location" placeholder="e.g., Main Sanctuary" />
           </div>
 
           <div class="space-y-2">
             <Label for="leader">Leader</Label>
-            <Input
-              id="leader"
-              v-model="formData.leader"
-              placeholder="e.g., Pastor John Doe"
-            />
+            <Input id="leader" v-model="formData.leader" placeholder="e.g., Pastor John Doe" />
           </div>
         </div>
 
@@ -225,22 +214,13 @@ function handleClose() {
               {{ formData.is_active ? 'Program is active' : 'Program is inactive' }}
             </p>
           </div>
-          <Switch
-            id="is_active"
-            v-model="formData.is_active"
-          />
+          <Switch id="is_active" v-model="formData.is_active" />
         </div>
       </div>
 
       <SheetFooter>
-        <Button type="button" variant="outline" @click="handleClose">
-          Cancel
-        </Button>
-        <Button
-          type="button"
-          :disabled="isSaving || !formData.name"
-          @click="handleSubmit"
-        >
+        <Button type="button" variant="outline" @click="handleClose"> Cancel </Button>
+        <Button type="button" :disabled="isSaving || !formData.name" @click="handleSubmit">
           <span v-if="isSaving" class="flex items-center gap-2">
             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
               <circle
@@ -259,9 +239,7 @@ function handleClose() {
             </svg>
             Saving...
           </span>
-          <span v-else>
-            {{ program ? 'Update' : 'Create' }} Program
-          </span>
+          <span v-else> {{ program ? 'Update' : 'Create' }} Program </span>
         </Button>
       </SheetFooter>
     </SheetContent>

@@ -10,6 +10,7 @@ import {
   BookOpen,
   UsersRound,
   UserRound,
+  ScrollText,
 } from 'lucide-vue-next'
 
 /**
@@ -88,6 +89,13 @@ export const navigationLinks = [
     permissions: [],
   },
   {
+    id: 'audit-logs',
+    name: 'Audit Logs',
+    path: '/dashboard/audit-logs',
+    icon: ScrollText,
+    permissions: ['audit.view'],
+  },
+  {
     id: 'settings',
     name: 'Settings',
     path: '/dashboard/settings',
@@ -104,11 +112,11 @@ export const navigationSections = [
   {
     id: 'main',
     label: 'Church Management',
-    links: navigationLinks.slice(0, -1), // All except settings
+    links: navigationLinks.slice(0, -2),
   },
   {
     id: 'settings',
     label: 'Administration',
-    links: navigationLinks.slice(-1), // Just settings
+    links: navigationLinks.slice(-2),
   },
 ]

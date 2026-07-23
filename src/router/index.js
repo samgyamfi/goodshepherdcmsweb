@@ -17,6 +17,7 @@ import settingsRoutes from '@/features/settings/routes'
 import errorRoutes from '@/features/errors/routes'
 import churchRoutes from '@/features/church/routes'
 import adminRoutes from '@/features/admin/routes'
+import auditRoutes from '@/features/audit/routes'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,7 @@ const router = createRouter({
     ...settingsRoutes,
     ...churchRoutes,
     ...adminRoutes,
+    ...auditRoutes,
     ...errorRoutes,
   ],
 })

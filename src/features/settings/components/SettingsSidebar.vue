@@ -16,7 +16,7 @@ function pathForCurrentShell(path) {
     return path
   }
 
-  return typedDashboardPath(authStore.user?.user_type, path)
+  return typedDashboardPath(authStore.effectiveUserType, path)
 }
 
 const visibleLinks = computed(() =>

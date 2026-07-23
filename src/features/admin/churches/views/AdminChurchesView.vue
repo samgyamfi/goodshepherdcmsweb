@@ -9,6 +9,7 @@ import { useChurchStore } from '@/stores/church'
 import { useConfirm } from '@/composables/useConfirm'
 import { showToast } from '@/utils/toast'
 import ChurchesList from '../components/ChurchesList.vue'
+import SupportAccessDialog from '../components/SupportAccessDialog.vue'
 import { Building2 } from 'lucide-vue-next'
 
 const router      = useRouter()
@@ -17,6 +18,13 @@ const churchStore = useChurchStore()
 const { confirm } = useConfirm()
 
 const activeTab = ref('active')
+const supportDialogOpen = ref(false)
+const supportChurch = ref(null)
+
+function handleSupportAccess(church) {
+  supportChurch.value = church
+  supportDialogOpen.value = true
+}
 
 // ── Active churches ────────────────────────────────────────────────────────────
 const {
@@ -222,6 +230,7 @@ onMounted(loadChurches)
           @per-page-change="handleActivePerPageChange"
           @view-landing="handleViewLanding"
           @access-settings="handleAccessSettings"
+          @support-access="handleSupportAccess"
           @toggle-status="handleToggleStatus"
           @delete="handleDelete"
           @bulk-delete="handleBulkDelete"
@@ -246,5 +255,7 @@ onMounted(loadChurches)
         />
       </TabsContent>
     </TabsRoot>
+
+    <SupportAccessDialog v-model:open="supportDialogOpen" :church="supportChurch" />
   </div>
 </template>

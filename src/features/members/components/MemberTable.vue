@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MoreVertical, Eye, Pencil, CheckCircle, PauseCircle, Trash2 } from 'lucide-vue-next'
+import { MoreVertical, Eye, Pencil, CheckCircle, PauseCircle, Trash2, ShieldCheck } from 'lucide-vue-next'
 import { UserStatus, MembershipStatus } from '@/enums'
 
 defineProps({
@@ -39,9 +39,13 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  canManagePermissions: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['view', 'edit', 'approve', 'suspend', 'delete'])
+const emit = defineEmits(['view', 'edit', 'approve', 'suspend', 'delete', 'permissions'])
 
 // Get initials from name
 function getInitials(firstName, lastName) {
@@ -82,6 +86,10 @@ function handleSuspend(member) {
 
 function handleDelete(member) {
   emit('delete', member)
+}
+
+function handlePermissions(member) {
+  emit('permissions', member)
 }
 
 // Delegates to UserStatus enum — no raw strings
@@ -239,6 +247,13 @@ function canSuspend(member) {
                   <DropdownMenuItem @click="handleEdit(member)">
                     <Pencil class="mr-2 h-4 w-4" />
                     Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    v-if="canManagePermissions"
+                    @click="handlePermissions(member)"
+                  >
+                    <ShieldCheck class="mr-2 h-4 w-4" />
+                    Manage Permissions
                   </DropdownMenuItem>
                   <DropdownMenuSeparator v-if="canApprove(member) || canSuspend(member)" />
                   <DropdownMenuItem

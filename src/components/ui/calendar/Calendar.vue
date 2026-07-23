@@ -1,8 +1,25 @@
 <script setup>
 import { reactiveOmit } from '@vueuse/core'
-import { CalendarRoot, useForwardPropsEmits } from 'reka-ui'
+import {
+  CalendarRoot,
+  RangeCalendarCell,
+  RangeCalendarCellTrigger,
+  RangeCalendarGrid,
+  RangeCalendarGridBody,
+  RangeCalendarGridHead,
+  RangeCalendarGridRow,
+  RangeCalendarHeadCell,
+  RangeCalendarHeader,
+  RangeCalendarHeading,
+  RangeCalendarNext,
+  RangeCalendarPrev,
+  RangeCalendarRoot,
+  useForwardProps,
+} from 'reka-ui'
 import { fromDate } from '@internationalized/date'
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
 import {
   CalendarCell,
   CalendarCellTrigger,
@@ -51,6 +68,15 @@ const props = defineProps({
 const emits = defineEmits(['update:modelValue', 'update:placeholder'])
 
 // Convert JS Date to reka-ui CalendarDate
+function isCalendarDate(date) {
+  return (
+    date &&
+    Number.isInteger(date.year) &&
+    Number.isInteger(date.month) &&
+    Number.isInteger(date.day)
+  )
+}
+
 function convertToRekaDate(date) {
   if (!date) return undefined
   if (date instanceof Date) return fromDate(date)
@@ -58,38 +84,29 @@ function convertToRekaDate(date) {
     const parsed = new Date(date)
     return Number.isNaN(parsed.getTime()) ? undefined : fromDate(parsed)
   }
-  // If it's already a CalendarDate (has copy method), return as-is
-  if (date && typeof date.copy === 'function') return date
+  if (isCalendarDate(date)) return date
+
   return undefined
 }
 
-// Convert reka-ui CalendarDate to JS Date
 function convertToJsDate(date) {
   if (!date) return undefined
-  if (typeof date.copy === 'function') {
-    // CalendarDate has year, month, day properties (month is 1-based)
-    return new Date(date.year, date.month - 1, date.day)
-  }
-  return date
+  if (date instanceof Date) return date
+  if (isCalendarDate(date)) return new Date(date.year, date.month - 1, date.day)
+
+  return undefined
 }
 
-// Handle range value conversion for reka-ui
 function convertModelValueForReka(value) {
   if (!value) return undefined
 
   if (props.mode === 'range') {
-    // Handle object format { from: Date, to: Date }
     const rangeStart = value.from ?? value.start
     const rangeEnd = value.to ?? value.end
 
-    if (rangeStart) {
-      const fromDateVal = convertToRekaDate(rangeStart)
-      const toDateVal = rangeEnd ? convertToRekaDate(rangeEnd) : fromDateVal
-      return [fromDateVal, toDateVal].filter(Boolean)
-    }
-    // Handle array format [Date, Date]
-    if (Array.isArray(value)) {
-      return value.map(convertToRekaDate).filter(Boolean)
+    return {
+      start: convertToRekaDate(rangeStart),
+      end: convertToRekaDate(rangeEnd),
     }
   }
 
@@ -100,22 +117,18 @@ function convertModelValueForReka(value) {
   return convertToRekaDate(value)
 }
 
-// Handle reka-ui value conversion back to JS Date
 function convertModelValueFromReka(value) {
   if (!value) return undefined
 
-  if (props.mode === 'range' && Array.isArray(value) && value.length >= 1) {
+  if (props.mode === 'range') {
+    const start = convertToJsDate(value.start ?? value.from)
+    const end = convertToJsDate(value.end ?? value.to)
+
     if (props.modelValue && Object.prototype.hasOwnProperty.call(props.modelValue, 'start')) {
-      return {
-        start: convertToJsDate(value[0]),
-        end: value[1] ? convertToJsDate(value[1]) : convertToJsDate(value[0]),
-      }
+      return { start, end }
     }
 
-    return {
-      from: convertToJsDate(value[0]),
-      to: value[1] ? convertToJsDate(value[1]) : convertToJsDate(value[0]),
-    }
+    return { from: start, to: end }
   }
 
   if (Array.isArray(value)) {
@@ -138,17 +151,22 @@ const delegatedProps = reactiveOmit(
   'multiple',
 )
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const forwarded = useForwardProps(delegatedProps)
 
 // Watch for modelValue changes from reka-ui and emit in the correct format
 function handleUpdateModelValue(newValue) {
   const convertedValue = convertModelValueFromReka(newValue)
   emits('update:modelValue', convertedValue)
 }
+
+function handleUpdatePlaceholder(newValue) {
+  emits('update:placeholder', convertToJsDate(newValue))
+}
 </script>
 
 <template>
-  <CalendarRoot
+  <RangeCalendarRoot
+    v-if="props.mode === 'range'"
     v-slot="{ grid, weekDays }"
     :class="cn('p-3', props.class)"
     v-bind="forwarded"
@@ -158,8 +176,100 @@ function handleUpdateModelValue(newValue) {
     :default-placeholder="convertToRekaDate(props.defaultPlaceholder)"
     :min-value="convertToRekaDate(props.minValue)"
     :max-value="convertToRekaDate(props.maxValue)"
-    :multiple="props.mode === 'range' ? false : props.multiple"
     @update:model-value="handleUpdateModelValue"
+    @update:placeholder="handleUpdatePlaceholder"
+  >
+    <RangeCalendarHeader class="relative flex w-full items-center justify-between pt-1">
+      <RangeCalendarPrev
+        :class="
+          cn(
+            buttonVariants({ variant: 'outline' }),
+            'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',
+          )
+        "
+      >
+        <ChevronLeft class="h-4 w-4" />
+      </RangeCalendarPrev>
+      <RangeCalendarHeading class="text-sm font-medium" />
+      <RangeCalendarNext
+        :class="
+          cn(
+            buttonVariants({ variant: 'outline' }),
+            'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',
+          )
+        "
+      >
+        <ChevronRight class="h-4 w-4" />
+      </RangeCalendarNext>
+    </RangeCalendarHeader>
+
+    <div class="mt-4 flex flex-col gap-y-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+      <RangeCalendarGrid
+        v-for="month in grid"
+        :key="month.value.toString()"
+        class="w-full border-collapse space-y-1"
+      >
+        <RangeCalendarGridHead>
+          <RangeCalendarGridRow class="flex">
+            <RangeCalendarHeadCell
+              v-for="day in weekDays"
+              :key="day"
+              class="w-9 rounded-md text-[0.8rem] font-normal text-muted-foreground"
+            >
+              {{ day }}
+            </RangeCalendarHeadCell>
+          </RangeCalendarGridRow>
+        </RangeCalendarGridHead>
+        <RangeCalendarGridBody>
+          <RangeCalendarGridRow
+            v-for="(weekDates, index) in month.rows"
+            :key="`range-week-${index}`"
+            class="mt-2 flex w-full"
+          >
+            <RangeCalendarCell
+              v-for="weekDate in weekDates"
+              :key="weekDate.toString()"
+              :date="weekDate"
+              class="relative h-9 w-9 p-0 text-center text-sm focus-within:relative focus-within:z-20"
+            >
+              <RangeCalendarCellTrigger
+                :day="weekDate"
+                :month="month.value"
+                :class="
+                  cn(
+                    buttonVariants({ variant: 'ghost' }),
+                    'h-9 w-9 p-0 font-normal',
+                    'data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground',
+                    'data-[selection-start]:bg-primary data-[selection-start]:text-primary-foreground',
+                    'data-[selection-end]:bg-primary data-[selection-end]:text-primary-foreground',
+                    '[&[data-today]:not([data-selected])]:bg-accent',
+                    'data-[disabled]:text-muted-foreground data-[disabled]:opacity-50',
+                    'data-[unavailable]:text-destructive-foreground data-[unavailable]:line-through',
+                    'data-[outside-view]:text-muted-foreground data-[outside-view]:opacity-50',
+                  )
+                "
+              />
+            </RangeCalendarCell>
+          </RangeCalendarGridRow>
+        </RangeCalendarGridBody>
+      </RangeCalendarGrid>
+    </div>
+  </RangeCalendarRoot>
+
+  <CalendarRoot
+    v-else
+    v-slot="{ grid, weekDays }"
+    :class="cn('p-3', props.class)"
+    v-bind="forwarded"
+    :model-value="convertModelValueForReka(props.modelValue)"
+    :default-value="props.defaultValue ? convertModelValueForReka(props.defaultValue) : undefined"
+    :placeholder="convertToRekaDate(props.placeholder)"
+    :default-placeholder="convertToRekaDate(props.defaultPlaceholder)"
+    :min-value="convertToRekaDate(props.minValue)"
+    :max-value="convertToRekaDate(props.maxValue)"
+    :multiple="props.multiple"
+    @update:model-value="handleUpdateModelValue"
+    @update:placeholder="handleUpdatePlaceholder"
   >
     <CalendarHeader>
       <CalendarPrevButton />

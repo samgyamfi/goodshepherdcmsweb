@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -67,17 +68,17 @@ watch(
   (newPastor) => {
     if (newPastor) {
       formData.value = {
-        title:         newPastor.title         || '',
-        first_name:    newPastor.first_name    || '',
-        last_name:     newPastor.last_name     || '',
-        phone:         newPastor.phone         || '',
-        email:         newPastor.email         || '',
-        bio:           newPastor.bio           || '',
-        specialty:     newPastor.specialty     || '',
+        title: newPastor.title || '',
+        first_name: newPastor.first_name || '',
+        last_name: newPastor.last_name || '',
+        phone: newPastor.phone || '',
+        email: newPastor.email || '',
+        bio: newPastor.bio || '',
+        specialty: newPastor.specialty || '',
         ordained_date: newPastor.ordained_date || '',
-        is_active:     newPastor.is_active     ?? true,
+        is_active: newPastor.is_active ?? true,
         display_order: newPastor.display_order ?? null,
-        photo:         null,
+        photo: null,
       }
     } else {
       resetForm()
@@ -88,17 +89,17 @@ watch(
 
 function resetForm() {
   formData.value = {
-    title:         '',
-    first_name:    '',
-    last_name:     '',
-    phone:         '',
-    email:         '',
-    bio:           '',
-    specialty:     '',
+    title: '',
+    first_name: '',
+    last_name: '',
+    phone: '',
+    email: '',
+    bio: '',
+    specialty: '',
     ordained_date: '',
-    is_active:     true,
+    is_active: true,
     display_order: null,
-    photo:         null,
+    photo: null,
   }
 }
 
@@ -121,7 +122,10 @@ const isFormValid = () =>
 
 <template>
   <Sheet :open="isOpen" @update:open="handleClose">
-    <SheetContent side="right" class="overflow-y-auto flex flex-col">
+    <SheetContent
+      side="right"
+      class="flex w-[95vw] flex-col overflow-y-auto sm:max-w-2xl lg:max-w-3xl"
+    >
       <SheetHeader>
         <SheetTitle class="flex items-center gap-2">
           <UserRound class="h-5 w-5" />
@@ -189,7 +193,12 @@ const isFormValid = () =>
           </div>
           <div class="space-y-2">
             <Label for="email">Email</Label>
-            <Input id="email" v-model="formData.email" type="email" placeholder="pastor@example.com" />
+            <Input
+              id="email"
+              v-model="formData.email"
+              type="email"
+              placeholder="pastor@example.com"
+            />
           </div>
         </div>
 
@@ -201,7 +210,11 @@ const isFormValid = () =>
           </div>
           <div class="space-y-2">
             <Label for="ordained_date">Ordained Date</Label>
-            <Input id="ordained_date" v-model="formData.ordained_date" type="date" />
+            <DatePicker
+              id="ordained_date"
+              v-model="formData.ordained_date"
+              placeholder="Select ordained date"
+            />
           </div>
         </div>
 
@@ -216,8 +229,8 @@ const isFormValid = () =>
             placeholder="Auto-assigned if left empty"
           />
           <p class="text-xs text-muted-foreground">
-            Controls the order pastors appear on the public page. Lower numbers appear first.
-            Leave blank to automatically place this pastor at the end of the list.
+            Controls the order pastors appear on the public page. Lower numbers appear first. Leave
+            blank to automatically place this pastor at the end of the list.
           </p>
         </div>
 
@@ -247,13 +260,9 @@ const isFormValid = () =>
 
       <SheetFooter class="gap-2 pt-4 border-t">
         <Button variant="outline" type="button" @click="handleClose">Cancel</Button>
-        <Button
-          type="button"
-          :disabled="isSaving || !isFormValid()"
-          @click="handleSubmit"
-        >
+        <Button type="button" :disabled="isSaving || !isFormValid()" @click="handleSubmit">
           <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
-          {{ isSaving ? 'Saving...' : (pastor ? 'Update Pastor' : 'Create Pastor') }}
+          {{ isSaving ? 'Saving...' : pastor ? 'Update Pastor' : 'Create Pastor' }}
         </Button>
       </SheetFooter>
     </SheetContent>

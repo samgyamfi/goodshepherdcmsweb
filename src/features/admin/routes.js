@@ -54,6 +54,12 @@ export default [
         meta: { breadcrumb: 'Roles & Permissions' },
       },
       {
+        path: 'audit-logs',
+        name: 'admin-audit-logs',
+        component: () => import('@/features/audit/AuditLogsView.vue'),
+        meta: { breadcrumb: 'Audit Logs' },
+      },
+      {
         path: 'settings',
         name: 'admin-settings',
         component: () => import('./settings/views/AdminSystemSettingsView.vue'),

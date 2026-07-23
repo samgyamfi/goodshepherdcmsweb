@@ -15,6 +15,7 @@ import MemberActionDialogs from './components/MemberActionDialogs.vue'
 import { ExportMembersDialog, ImportMembersDialog } from './components/import-export'
 import MemberForm from './MemberForm.vue'
 import MemberDetails from './MemberDetails.vue'
+import MemberPermissionsSheet from './components/MemberPermissionsSheet.vue'
 
 const membersStore = useMembersStore()
 
@@ -37,6 +38,7 @@ const {
   canDeleteMembers,
   canImportMembers,
   canExportMembers,
+  canAssignMemberPermissions,
   handleSearch,
   handlePageChange,
   handleRowsPerPageChange,
@@ -54,6 +56,7 @@ const isDetailsOpen = ref(false)
 const isDeleteDialogOpen = ref(false)
 const isExportDialogOpen = ref(false)
 const isImportDialogOpen = ref(false)
+const isPermissionsSheetOpen = ref(false)
 const selectedMember = ref(null)
 const isEditMode = ref(false)
 
@@ -98,6 +101,11 @@ async function handleSuspendMember(member) {
 function handleDeleteMember(member) {
   selectedMember.value = member
   isDeleteDialogOpen.value = true
+}
+
+function handleManagePermissions(member) {
+  selectedMember.value = member
+  isPermissionsSheetOpen.value = true
 }
 
 // Confirm delete
@@ -227,8 +235,10 @@ onUnmounted(() => {
         :loading="loading"
         :can-manage="canManageMembers"
         :can-delete="canDeleteMembers"
+        :can-manage-permissions="canAssignMemberPermissions"
         @view="handleViewMember"
         @edit="handleEditMember"
+        @permissions="handleManagePermissions"
         @approve="handleApproveMember"
         @suspend="handleSuspendMember"
         @delete="handleDeleteMember"
@@ -285,6 +295,14 @@ onUnmounted(() => {
       :is-open="isImportDialogOpen"
       @close="isImportDialogOpen = false"
       @import="handleImportSubmit"
+    />
+
+    <MemberPermissionsSheet
+      :is-open="isPermissionsSheetOpen"
+      :member="selectedMember"
+      @update:is-open="isPermissionsSheetOpen = $event"
+      @close="isPermissionsSheetOpen = false"
+      @updated="refresh"
     />
   </DashboardLayout>
 </template>

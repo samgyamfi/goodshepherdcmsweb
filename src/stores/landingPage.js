@@ -44,7 +44,12 @@ export const useLandingPageStore = defineStore(
     function sectionContent(sectionKey) {
       return computed(() => {
         if (!data.value) return {}
-        return data.value.content_settings?.[sectionKey]?.content ?? {}
+        const setting = data.value.content_settings?.[sectionKey] ?? {}
+
+        return {
+          ...(setting.content_urls ?? setting.content ?? {}),
+          ...(setting.media_urls ?? {}),
+        }
       })
     }
 

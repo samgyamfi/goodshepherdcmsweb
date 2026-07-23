@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 
 import { Menu } from 'lucide-vue-next'
+import SupportAccessBanner from './SupportAccessBanner.vue'
 
 defineEmits(['toggle-mobile-menu'])
 
@@ -62,5 +63,7 @@ const breadcrumbs = computed(() => {
 
     <!-- Spacer -->
     <div class="flex-1" />
+
+    <SupportAccessBanner />
   </header>
 </template>

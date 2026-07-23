@@ -54,10 +54,14 @@ export const useAuthStore = defineStore(
 
     /** Whether the current user is a super administrator */
     const isSuperAdmin = computed(() => user.value?.user_type === UserType.SUPER_ADMIN)
+    const isSupportAccess = computed(() => !!user.value?.support_session)
+    const effectiveUserType = computed(
+      () => user.value?.effective_user_type || user.value?.user_type,
+    )
 
-    const dashboardRouteName = computed(() => dashboardRouteNameForUserType(user.value?.user_type))
+    const dashboardRouteName = computed(() => dashboardRouteNameForUserType(effectiveUserType.value))
 
-    const dashboardBasePath = computed(() => dashboardBaseForUserType(user.value?.user_type))
+    const dashboardBasePath = computed(() => dashboardBaseForUserType(effectiveUserType.value))
 
     /**
      * Whether the current user has an active church profile.
@@ -77,7 +81,7 @@ export const useAuthStore = defineStore(
      * unnecessary reactive writes.
      */
     function _seedChurchFromUser(userData) {
-      const church = userData?.profile?.church
+      const church = userData?.support_session?.church || userData?.profile?.church
       if (!church) return
 
       const churchStore = useChurchStore()
@@ -186,21 +190,25 @@ export const useAuthStore = defineStore(
 
     /** Check if user has a specific Spatie permission */
     function can(permission) {
-      if (isSuperAdmin.value) return true
+      if (isSuperAdmin.value && !isSupportAccess.value) {
+        return permission === 'support.access'
+          ? userPermissions.value.includes(permission)
+          : true
+      }
 
       return userPermissions.value.includes(permission)
     }
 
     /** Check if user has any of the given Spatie permissions */
     function canAny(permissions) {
-      if (isSuperAdmin.value) return true
+      if (isSuperAdmin.value && !isSupportAccess.value) return true
 
       return permissions.some((permission) => userPermissions.value.includes(permission))
     }
 
     /** Check if user has all given Spatie permissions */
     function canAll(permissions) {
-      if (isSuperAdmin.value) return true
+      if (isSuperAdmin.value && !isSupportAccess.value) return true
 
       return permissions.every((permission) => userPermissions.value.includes(permission))
     }
@@ -250,6 +258,8 @@ export const useAuthStore = defineStore(
       userPermissions,
       userInitials,
       isSuperAdmin,
+      isSupportAccess,
+      effectiveUserType,
       dashboardRouteName,
       dashboardBasePath,
       hasActiveChurch,

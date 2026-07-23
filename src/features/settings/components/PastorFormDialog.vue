@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -59,23 +60,27 @@ const formData = ref({
 const photoFile = ref(null)
 
 // Watch for pastor changes (edit mode)
-watch(() => props.pastor, (newPastor) => {
-  if (newPastor) {
-    formData.value = {
-      title: newPastor.title || '',
-      first_name: newPastor.first_name || '',
-      last_name: newPastor.last_name || '',
-      phone: newPastor.phone || '',
-      email: newPastor.email || '',
-      bio: newPastor.bio || '',
-      specialty: newPastor.specialty || '',
-      ordained_date: newPastor.ordained_date || '',
-      is_active: newPastor.is_active ?? true,
+watch(
+  () => props.pastor,
+  (newPastor) => {
+    if (newPastor) {
+      formData.value = {
+        title: newPastor.title || '',
+        first_name: newPastor.first_name || '',
+        last_name: newPastor.last_name || '',
+        phone: newPastor.phone || '',
+        email: newPastor.email || '',
+        bio: newPastor.bio || '',
+        specialty: newPastor.specialty || '',
+        ordained_date: newPastor.ordained_date || '',
+        is_active: newPastor.is_active ?? true,
+      }
+    } else {
+      resetForm()
     }
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 // Pastor title options
 const titleOptions = [
@@ -85,7 +90,7 @@ const titleOptions = [
   { value: 'Assistant Pastor', label: 'Assistant Pastor' },
   { value: 'Youth Pastor', label: 'Youth Pastor' },
   { value: 'Worship Pastor', label: 'Worship Pastor' },
-  { value: 'Children\'s Pastor', label: 'Children\'s Pastor' },
+  { value: "Children's Pastor", label: "Children's Pastor" },
   { value: 'Reverend', label: 'Reverend' },
   { value: 'Bishop', label: 'Bishop' },
   { value: 'Elder', label: 'Elder' },
@@ -162,9 +167,7 @@ function handleClose() {
             :max-size="2"
             @change="handlePhotoSelect"
           />
-          <p class="text-xs text-muted-foreground">
-            Recommended size: 400x400px. Max size: 2MB
-          </p>
+          <p class="text-xs text-muted-foreground">Recommended size: 400x400px. Max size: 2MB</p>
         </div>
 
         <!-- Title & Name -->
@@ -192,20 +195,12 @@ function handleClose() {
 
           <div class="space-y-2">
             <Label for="first_name">First Name *</Label>
-            <Input
-              id="first_name"
-              v-model="formData.first_name"
-              placeholder="John"
-            />
+            <Input id="first_name" v-model="formData.first_name" placeholder="John" />
           </div>
 
           <div class="space-y-2">
             <Label for="last_name">Last Name *</Label>
-            <Input
-              id="last_name"
-              v-model="formData.last_name"
-              placeholder="Doe"
-            />
+            <Input id="last_name" v-model="formData.last_name" placeholder="Doe" />
           </div>
         </div>
 
@@ -213,12 +208,7 @@ function handleClose() {
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <Label for="phone">Phone</Label>
-            <Input
-              id="phone"
-              v-model="formData.phone"
-              type="tel"
-              placeholder="+233 XX XXX XXXX"
-            />
+            <Input id="phone" v-model="formData.phone" type="tel" placeholder="+233 XX XXX XXXX" />
           </div>
 
           <div class="space-y-2">
@@ -245,10 +235,10 @@ function handleClose() {
 
           <div class="space-y-2">
             <Label for="ordained_date">Ordained Date</Label>
-            <Input
+            <DatePicker
               id="ordained_date"
               v-model="formData.ordained_date"
-              type="date"
+              placeholder="Select ordained date"
             />
           </div>
         </div>
@@ -273,17 +263,12 @@ function handleClose() {
               {{ formData.is_active ? 'Currently serving' : 'Not currently serving' }}
             </p>
           </div>
-          <Switch
-            id="is_active"
-            v-model="formData.is_active"
-          />
+          <Switch id="is_active" v-model="formData.is_active" />
         </div>
       </div>
 
       <DialogFooter>
-        <Button type="button" variant="outline" @click="handleClose">
-          Cancel
-        </Button>
+        <Button type="button" variant="outline" @click="handleClose"> Cancel </Button>
         <Button
           type="button"
           :disabled="isSaving || !formData.title || !formData.first_name || !formData.last_name"
@@ -307,9 +292,7 @@ function handleClose() {
             </svg>
             Saving...
           </span>
-          <span v-else>
-            {{ pastor ? 'Update' : 'Create' }} Pastor
-          </span>
+          <span v-else> {{ pastor ? 'Update' : 'Create' }} Pastor </span>
         </Button>
       </DialogFooter>
     </DialogContent>

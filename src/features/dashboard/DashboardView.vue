@@ -13,6 +13,7 @@ import { TabsRoot, TabsList, TabsTrigger, TabsContent } from '@/components/ui/ta
 import { Calendar as CalendarIcon, FileText, User, Building, Wallet } from 'lucide-vue-next'
 import { dashboardCards } from './config/dashboardCards'
 import { personalDashboardCards } from './config/personalDashboardCards'
+import RecentAuditActivity from '@/features/audit/components/RecentAuditActivity.vue'
 
 const authStore = useAuthStore()
 const { activeTab, canSeeChurchTab, setActiveTab } = useDashboardTabs()
@@ -235,6 +236,10 @@ onMounted(() => {
               <p class="text-muted-foreground">Bar Chart Placeholder</p>
             </div>
           </div>
+        </div>
+
+        <div v-if="authStore.can('audit.view')" class="mt-8">
+          <RecentAuditActivity />
         </div>
       </TabsContent>
     </TabsRoot>

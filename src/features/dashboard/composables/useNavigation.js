@@ -17,7 +17,7 @@ export function useNavigation() {
       return path
     }
 
-    return typedDashboardPath(authStore.user?.user_type, path)
+    return typedDashboardPath(authStore.effectiveUserType, path)
   }
 
   /**
