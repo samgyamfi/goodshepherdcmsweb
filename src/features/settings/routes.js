@@ -52,22 +52,6 @@ export default [
     },
   },
   {
-    path: '/dashboard/settings/ministries',
-    alias: [
-      '/church-admin/dashboard/settings/ministries',
-      '/pastor/dashboard/settings/ministries',
-      '/member/dashboard/settings/ministries',
-      '/visitor/dashboard/settings/ministries',
-    ],
-    name: 'settings-ministries',
-    component: () => import('./views/SettingsMinistriesView.vue'),
-    meta: {
-      requiresAuth: true,
-      permissions: ['settings.view'],
-      breadcrumb: 'Ministries',
-    },
-  },
-  {
     path: '/dashboard/settings/categories',
     alias: [
       '/church-admin/dashboard/settings/categories',
@@ -172,7 +156,7 @@ export default [
       '/visitor/dashboard/settings/events',
     ],
     name: 'settings-events',
-    component: () => import('./views/SettingsEventsView.vue'),
+    redirect: { name: 'events' },
     meta: {
       requiresAuth: true,
       permissions: ['events.update'],

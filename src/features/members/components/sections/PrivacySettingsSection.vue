@@ -69,8 +69,8 @@ const statusOptions = [
       </div>
       <Switch
         id="privacy_share_contact"
-        :checked="formData.share_contact_info"
-        @update:checked="(value) => updateField('share_contact_info', value)"
+        :checked="formData.privacy_share_contact"
+        @update:checked="(value) => updateField('privacy_share_contact', value)"
       />
     </div>
 

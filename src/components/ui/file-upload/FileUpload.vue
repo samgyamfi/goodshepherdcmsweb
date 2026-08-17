@@ -34,6 +34,18 @@ const emit = defineEmits(['update:modelValue', 'error', 'change'])
 const fileInput = ref(null)
 const isDragging = ref(false)
 const error = ref(null)
+const imageExtensions = new Set([
+  'avif',
+  'bmp',
+  'gif',
+  'heic',
+  'heif',
+  'jpeg',
+  'jpg',
+  'png',
+  'svg',
+  'webp',
+])
 
 /**
  * Selected file
@@ -113,15 +125,15 @@ function validateAndSetFile(file) {
   }
 
   // Check file type
-  const allowedTypes = props.accept.split(',').map((type) => type.trim().toLowerCase())
-  const fileType = file.name.toLowerCase().split('.').pop()
-  const fileMimeType = file.type
-
-  const isAllowed =
-    allowedTypes.some((type) => {
-      const cleanType = type.replace('.', '')
-      return fileType === cleanType || fileMimeType.includes(cleanType)
-    }) || allowedTypes.includes('*/*')
+  const allowedTypes = props.accept
+    .split(',')
+    .map((type) => type.trim().toLowerCase())
+    .filter(Boolean)
+  const extension = file.name.toLowerCase().split('.').pop() || ''
+  const mimeType = file.type.toLowerCase()
+  const isAllowed = allowedTypes.some((allowedType) =>
+    matchesAcceptedType(allowedType, extension, mimeType),
+  )
 
   if (!isAllowed) {
     error.value = `Invalid file type. Accepted: ${props.accept}`
@@ -133,10 +145,22 @@ function validateAndSetFile(file) {
   emit('change', file)
 }
 
+function matchesAcceptedType(allowedType, extension, mimeType) {
+  if (allowedType === '*/*') return true
+  if (allowedType.startsWith('.')) return extension === allowedType.slice(1)
+  if (!allowedType.endsWith('/*')) return mimeType === allowedType
+
+  const mimeFamily = allowedType.slice(0, -1)
+  if (mimeType.startsWith(mimeFamily)) return true
+
+  return mimeFamily === 'image/' && imageExtensions.has(extension)
+}
+
 /**
  * Clear selected file
  */
 function clearFile() {
+  error.value = null
   emit('update:modelValue', null)
   emit('change', null)
   if (fileInput.value) {

@@ -30,6 +30,8 @@ export const useAuthStore = defineStore(
     const token = ref(null)
     const isLoading = ref(false)
     const error = ref(null)
+    const hasInitialized = ref(false)
+    let initializationPromise = null
 
     // ── Getters ───────────────────────────────────────────────────────────────
     const isAuthenticated = computed(() => !!token.value && !!user.value)
@@ -173,9 +175,11 @@ export const useAuthStore = defineStore(
         const response = await authService.getUser()
         // response shape: { status: true, data: { user: {...} } }
 
-        if (response.status && response.data) {
-          user.value = response.data.user // ← was incorrectly response.data
-          _seedChurchFromUser(response.data.user)
+        const refreshedUser = response.data?.user
+
+        if (response.status && refreshedUser) {
+          user.value = refreshedUser
+          _seedChurchFromUser(refreshedUser)
           return true
         }
 
@@ -223,6 +227,7 @@ export const useAuthStore = defineStore(
     function setAuthData(data) {
       user.value = data.user
       token.value = data.authorisation.token
+      hasInitialized.value = true
       _seedChurchFromUser(data.user)
     }
 
@@ -231,6 +236,8 @@ export const useAuthStore = defineStore(
       user.value = null
       token.value = null
       error.value = null
+      hasInitialized.value = false
+      initializationPromise = null
       useChurchStore().clearChurchData()
     }
 
@@ -238,10 +245,21 @@ export const useAuthStore = defineStore(
      * Initialize auth from a persisted token (hard refresh, new tab).
      * Calls /auth/me to validate the token and hydrate user + church data.
      */
-    async function initializeAuth() {
-      if (token.value) {
-        await fetchUser()
-      }
+    async function initializeAuth({ force = false } = {}) {
+      if (!token.value) return false
+      if (hasInitialized.value && !force) return true
+      if (initializationPromise) return initializationPromise
+
+      initializationPromise = fetchUser()
+        .then((refreshed) => {
+          hasInitialized.value = refreshed
+          return refreshed
+        })
+        .finally(() => {
+          initializationPromise = null
+        })
+
+      return initializationPromise
     }
 
     return {

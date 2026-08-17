@@ -40,6 +40,11 @@ export const membersService = {
     return response.data
   },
 
+  async getFormOptions() {
+    const response = await api.get('/members/form-options')
+    return response.data
+  },
+
   /**
    * Update an existing member
    * @param {string|number} id - Member ID or UUID

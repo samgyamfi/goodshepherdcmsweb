@@ -11,7 +11,6 @@ import welfareRoutes from '@/features/welfare/routes'
 import tithesRoutes from '@/features/tithes/routes'
 import eventsRoutes from '@/features/events/routes'
 import groupsRoutes from '@/features/groups/routes'
-import ministriesRoutes from '@/features/ministries/routes'
 import sermonsRoutes from '@/features/sermons/routes'
 import settingsRoutes from '@/features/settings/routes'
 import errorRoutes from '@/features/errors/routes'
@@ -40,7 +39,6 @@ const router = createRouter({
     ...tithesRoutes,
     ...eventsRoutes,
     ...groupsRoutes,
-    ...ministriesRoutes,
     ...sermonsRoutes,
     ...settingsRoutes,
     ...churchRoutes,

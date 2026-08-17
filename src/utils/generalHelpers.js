@@ -12,7 +12,8 @@
  *   buildFormData(fd, { name: 'John', photo: fileObject })
  */
 function buildFormData(formData, data, parentKey) {
-  if (data && typeof data === 'object' && !(data instanceof Date) && !(data instanceof File)) {
+  const isBinary = data instanceof File || data instanceof Blob
+  if (data && typeof data === 'object' && !(data instanceof Date) && !isBinary) {
     Object.keys(data).forEach((key) => {
       buildFormData(formData, data[key], parentKey ? `${parentKey}[${key}]` : key)
     })

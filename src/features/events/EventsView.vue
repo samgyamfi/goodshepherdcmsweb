@@ -1,25 +1,25 @@
 <script setup>
+import { computed } from 'vue'
 import DashboardLayout from '@/features/dashboard/components/DashboardLayout.vue'
-import PageHeader from '@/components/dashboard/PageHeader.vue'
-import { CalendarDays } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth/auth'
+import EventManager from './components/EventManager.vue'
+import { eventsService } from './services/eventsService'
+
+const authStore = useAuthStore()
+const canCreate = computed(() => authStore.can('events.create'))
+const canUpdate = computed(() => authStore.can('events.update'))
+const canDelete = computed(() => authStore.can('events.delete'))
 </script>
 
 <template>
   <DashboardLayout>
-    <PageHeader
-      title="Events"
-      description="Manage church events, programs, and activities"
-      :icon="CalendarDays"
+    <EventManager
+      :service="eventsService"
+      :can-create="canCreate"
+      :can-update="canUpdate"
+      :can-delete="canDelete"
+      title="Church events"
+      description="Plan, publish, and review services, gatherings, and church-wide activities."
     />
-
-    <div class="space-y-6">
-      <div class="rounded-lg border bg-card p-8 text-center">
-        <CalendarDays class="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-        <h3 class="text-lg font-semibold mb-2">Events Management</h3>
-        <p class="text-muted-foreground">
-          This feature is under development. You'll be able to create and manage church events here.
-        </p>
-      </div>
-    </div>
   </DashboardLayout>
 </template>

@@ -53,6 +53,7 @@ const emit = defineEmits([
   'per-page-change',
   'search',
   'view-landing',
+  'edit',
   'access-settings',
   'support-access',
   'toggle-status',
@@ -319,6 +320,11 @@ function statusVariant(isActive) {
                       <DropdownMenuItem class="gap-2" @click="$emit('view-landing', church)">
                         <ExternalLink class="h-4 w-4 text-muted-foreground" />
                         View Landing Page
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem class="gap-2" @click="$emit('edit', church)">
+                        <Settings class="h-4 w-4 text-muted-foreground" />
+                        Edit Church
                       </DropdownMenuItem>
 
                       <DropdownMenuItem

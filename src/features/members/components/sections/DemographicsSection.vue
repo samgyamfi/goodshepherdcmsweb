@@ -32,6 +32,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:formData'])
 
+const currentYear = new Date().getFullYear()
+
 /**
  * Update form data field
  * @param {string} field - Field name to update
@@ -67,6 +69,8 @@ const maritalStatusOptions = [
           id="date_of_birth"
           :model-value="formData.date_of_birth"
           placeholder="Select date of birth"
+          month-year-navigation
+          :end-year="currentYear"
           @update:model-value="(value) => updateField('date_of_birth', value)"
         />
       </div>

@@ -6,6 +6,8 @@ import {
   Settings,
   ArrowLeftRight,
   ScrollText,
+  Layers3,
+  MapPinned,
 } from 'lucide-vue-next'
 
 /**
@@ -32,6 +34,8 @@ export const adminNavigationSections = [
     links: [
       { id: 'churches', name: 'Churches', path: '/admin/churches', icon: Building2 },
       { id: 'users', name: 'Users', path: '/admin/users', icon: Users },
+      { id: 'groups', name: 'Group Administration', path: '/admin/groups', icon: Layers3 },
+      { id: 'geography', name: 'Geography', path: '/admin/geography', icon: MapPinned },
       {
         id: 'transfers',
         name: 'Transfer Requests',

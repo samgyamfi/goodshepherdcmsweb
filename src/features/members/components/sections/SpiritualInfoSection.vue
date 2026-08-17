@@ -9,14 +9,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Button } from '@/components/ui/button'
-import { Calendar as CalendarIcon } from 'lucide-vue-next'
+import { DatePicker } from '@/components/ui/date-picker'
 
 /**
  * SpiritualInfoSection Component
@@ -49,23 +42,7 @@ function updateField(field, value) {
   emit('update:formData', { ...props.formData, [field]: value })
 }
 
-/**
- * Format date for display
- * @param {Date|string} date - Date to format
- * @returns {string} Formatted date string
- */
-function formatDate(date) {
-  if (!date) return ''
-  try {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  } catch {
-    return date
-  }
-}
+const currentYear = new Date().getFullYear()
 
 // Membership status options
 const membershipStatusOptions = [
@@ -94,25 +71,13 @@ const membershipStatusOptions = [
     <!-- Baptism Date (shown if baptized) -->
     <div v-if="formData.is_baptized" class="space-y-2">
       <label for="baptism_date" class="text-sm font-medium">Baptism Date</label>
-      <Popover>
-        <PopoverTrigger as-child>
-          <Button
-            variant="outline"
-            class="w-full justify-start text-left font-normal"
-            :class="!formData.baptism_date && 'text-muted-foreground'"
-          >
-            <CalendarIcon class="mr-2 h-4 w-4" />
-            {{ formData.baptism_date ? formatDate(formData.baptism_date) : 'Select date' }}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent class="w-auto p-0">
-          <Calendar
-            :model-value="formData.baptism_date"
-            @update:model-value="(value) => updateField('baptism_date', value)"
-            initial-focus
-          />
-        </PopoverContent>
-      </Popover>
+      <DatePicker
+        :model-value="formData.baptism_date"
+        placeholder="Select baptism date"
+        month-year-navigation
+        :end-year="currentYear"
+        @update:model-value="(value) => updateField('baptism_date', value)"
+      />
     </div>
 
     <Separator />
@@ -143,25 +108,13 @@ const membershipStatusOptions = [
       </div>
       <div class="space-y-2">
         <label for="membership_date" class="text-sm font-medium">Membership Date</label>
-        <Popover>
-          <PopoverTrigger as-child>
-            <Button
-              variant="outline"
-              class="w-full justify-start text-left font-normal"
-              :class="!formData.membership_date && 'text-muted-foreground'"
-            >
-              <CalendarIcon class="mr-2 h-4 w-4" />
-              {{ formData.membership_date ? formatDate(formData.membership_date) : 'Select date' }}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent class="w-auto p-0">
-            <Calendar
-              :model-value="formData.membership_date"
-              @update:model-value="(value) => updateField('membership_date', value)"
-              initial-focus
-            />
-          </PopoverContent>
-        </Popover>
+        <DatePicker
+          :model-value="formData.membership_date"
+          placeholder="Select membership date"
+          month-year-navigation
+          :end-year="currentYear"
+          @update:model-value="(value) => updateField('membership_date', value)"
+        />
       </div>
     </div>
 

@@ -52,30 +52,35 @@ const filteredGroups = computed(() => {
 })
 
 /**
- * Check if a group is selected
- * @param {Object} group - Group to check
+ * Check whether a group ID is selected.
  * @returns {boolean} Whether group is selected
  */
 function isGroupSelected(group) {
-  const groupId = group.id || group.uuid
-  return props.formData.groups?.some((g) => (g.id || g.uuid) === groupId) || false
+  return selectedGroupIds.value.includes(Number(group.id))
 }
+
+const selectedGroupIds = computed(() =>
+  (props.formData.groups ?? []).map((groupId) => Number(groupId)).filter(Number.isInteger),
+)
+
+const selectedGroups = computed(() =>
+  props.groups.filter((group) => selectedGroupIds.value.includes(Number(group.id))),
+)
 
 /**
  * Toggle group selection
  * @param {Object} group - Group to toggle
  */
 function toggleGroup(group) {
-  const currentGroups = props.formData.groups || []
-  const groupId = group.id || group.uuid
-  
-  const isSelected = currentGroups.some((g) => (g.id || g.uuid) === groupId)
-  
+  const groupId = Number(group.id)
+  const currentGroups = selectedGroupIds.value
+  const isSelected = currentGroups.includes(groupId)
+
   let newGroups
   if (isSelected) {
-    newGroups = currentGroups.filter((g) => (g.id || g.uuid) !== groupId)
+    newGroups = currentGroups.filter((id) => id !== groupId)
   } else {
-    newGroups = [...currentGroups, group]
+    newGroups = [...currentGroups, groupId]
   }
   
   emit('update:formData', { ...props.formData, groups: newGroups })
@@ -85,11 +90,8 @@ function toggleGroup(group) {
  * Remove a group from selection
  * @param {Object} group - Group to remove
  */
-function removeGroup(group) {
-  const groupId = group.id || group.uuid
-  const newGroups = (props.formData.groups || []).filter(
-    (g) => (g.id || g.uuid) !== groupId
-  )
+function removeGroup(groupId) {
+  const newGroups = selectedGroupIds.value.filter((id) => id !== Number(groupId))
   emit('update:formData', { ...props.formData, groups: newGroups })
 }
 </script>
@@ -99,10 +101,10 @@ function removeGroup(group) {
     <label class="text-sm font-medium">Groups</label>
     
     <!-- Selected Groups Display -->
-    <div v-if="formData.groups && formData.groups.length > 0" class="flex flex-wrap gap-2 mb-2">
+    <div v-if="selectedGroups.length > 0" class="mb-2 flex flex-wrap gap-2">
       <Badge
-        v-for="group in formData.groups"
-        :key="group.id || group.uuid"
+        v-for="group in selectedGroups"
+        :key="group.id"
         variant="secondary"
         class="gap-1"
       >
@@ -110,7 +112,7 @@ function removeGroup(group) {
         <button
           type="button"
           class="ml-1 hover:text-destructive"
-          @click.stop="removeGroup(group)"
+          @click.stop="removeGroup(group.id)"
         >
           <X class="h-3 w-3" />
         </button>
@@ -123,9 +125,9 @@ function removeGroup(group) {
         <Button
           variant="outline"
           class="w-full justify-start"
-          :class="!formData.groups?.length && 'text-muted-foreground'"
+          :class="!selectedGroupIds.length && 'text-muted-foreground'"
         >
-          {{ formData.groups?.length ? `${formData.groups.length} group(s) selected` : 'Select groups' }}
+          {{ selectedGroupIds.length ? `${selectedGroupIds.length} group(s) selected` : 'Select groups' }}
         </Button>
       </PopoverTrigger>
       <PopoverContent class="w-[300px] p-0">
@@ -140,7 +142,7 @@ function removeGroup(group) {
         <div class="max-h-[200px] overflow-y-auto">
           <div
             v-for="group in filteredGroups"
-            :key="group.id || group.uuid"
+            :key="group.id"
             class="px-2 py-1.5 text-sm cursor-pointer hover:bg-accent flex items-center justify-between"
             @click="toggleGroup(group)"
           >

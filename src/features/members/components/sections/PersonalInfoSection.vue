@@ -114,7 +114,7 @@ function toggleConfirmPassword() {
       </div>
       <div class="space-y-2">
         <label for="email" class="text-sm font-medium">
-          Email <span class="text-destructive">*</span>
+          Email
         </label>
         <Input
           id="email"
@@ -135,7 +135,7 @@ function toggleConfirmPassword() {
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="space-y-2">
           <label for="password" class="text-sm font-medium">
-            Password <span class="text-destructive">*</span>
+            Password
           </label>
           <div class="relative">
             <Input
@@ -158,10 +158,13 @@ function toggleConfirmPassword() {
           <p v-if="errors.password" class="text-xs text-destructive">
             {{ errors.password }}
           </p>
+          <p v-else class="text-xs text-muted-foreground">
+            Leave blank to generate a temporary password.
+          </p>
         </div>
         <div class="space-y-2">
           <label for="password_confirmation" class="text-sm font-medium">
-            Confirm Password <span class="text-destructive">*</span>
+            Confirm Password
           </label>
           <div class="relative">
             <Input

@@ -7,7 +7,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import Vue3Toastify, { toast } from 'vue3-toastify'
 
 import App from './App.vue'
-import router from './router'
+import router from '@/router'
 
 const app = createApp(App)
 

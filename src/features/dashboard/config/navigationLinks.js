@@ -6,7 +6,6 @@ import {
   Settings,
   Calendar,
   CalendarDays,
-  Users2,
   BookOpen,
   UsersRound,
   UserRound,
@@ -62,16 +61,9 @@ export const navigationLinks = [
   },
   {
     id: 'groups',
-    name: 'Small Groups',
+    name: 'Groups & Ministries',
     path: '/dashboard/groups',
     icon: UsersRound,
-    permissions: ['groups.view'],
-  },
-  {
-    id: 'ministries',
-    name: 'Ministries',
-    path: '/dashboard/ministries',
-    icon: Users2,
     permissions: ['groups.view'],
   },
   {

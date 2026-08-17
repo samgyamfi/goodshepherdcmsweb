@@ -1,132 +1,130 @@
-import { ref, computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useMembersStore } from '@/stores/members/members'
 import { showToast } from '@/utils/toast'
 
-/**
- * Composable for member form handling
- * Handles form state, validation, and submission
- */
-export function useMemberForm(initialData = null, isEditMode = false) {
-  const membersStore = useMembersStore()
-
-  // Form state
-  const formData = reactive({
-    // Personal Information
+function defaultFormData() {
+  return {
     first_name: '',
     last_name: '',
     phone: '',
     email: '',
     password: '',
     password_confirmation: '',
-    date_of_birth: null,
+    date_of_birth: '',
     gender: '',
     marital_status: '',
     occupation: '',
     whatsapp_number: '',
     address: '',
     digital_address: '',
-    city: '',
-    state: '',
-    postal_code: '',
-    country: '',
-
-    // Spiritual & Church Info
+    country_id: '',
+    region_id: '',
+    city_id: '',
+    postal_code_id: '',
     is_baptized: false,
-    baptism_date: null,
+    baptism_date: '',
     membership_status: 'active',
-    membership_date: null,
+    membership_date: '',
     groups: [],
     spiritual_gifts: '',
     ministry_interests: '',
     prayer_requests: '',
-    share_contact_info: true,
-
-    // Status
+    privacy_share_contact: true,
     status: 'active',
-  })
+  }
+}
 
-  // Validation errors
+function profileValue(profile, fallback, field, defaultValue = '') {
+  return profile?.[field] ?? fallback?.[field] ?? defaultValue
+}
+
+function normalizeGroups(member) {
+  return (member?.groups ?? [])
+    .map((item) => item.group?.id ?? item.id)
+    .filter(Boolean)
+}
+
+function normalizeMember(member) {
+  if (!member) return defaultFormData()
+
+  const profile = member.profile ?? {}
+  const personal = member.personal_info ?? {}
+  const spiritual = member.spiritual_info ?? {}
+  const next = defaultFormData()
+
+  return {
+    ...next,
+    first_name: member.first_name ?? personal.first_name ?? '',
+    last_name: member.last_name ?? personal.last_name ?? '',
+    phone: member.phone ?? personal.phone ?? '',
+    email: member.email ?? personal.email ?? '',
+    date_of_birth: profileValue(profile, personal, 'date_of_birth'),
+    gender: profileValue(profile, personal, 'gender'),
+    marital_status: profileValue(profile, personal, 'marital_status'),
+    occupation: profileValue(profile, personal, 'occupation'),
+    whatsapp_number: profileValue(profile, personal, 'whatsapp_number'),
+    address: profileValue(profile, personal, 'address'),
+    digital_address: profileValue(profile, personal, 'digital_address'),
+    country_id: String(profile.country_id ?? personal.country_id ?? ''),
+    region_id: String(profile.region_id ?? ''),
+    city_id: String(profile.city_id ?? ''),
+    postal_code_id: String(profile.postal_code_id ?? ''),
+    is_baptized: profile.is_baptized ?? spiritual.is_baptized ?? false,
+    baptism_date: profileValue(profile, spiritual, 'baptism_date'),
+    membership_status: profile.membership_status ?? spiritual.membership_status ?? 'active',
+    membership_date: profileValue(profile, spiritual, 'membership_date'),
+    groups: normalizeGroups(member),
+    spiritual_gifts: profileValue(profile, spiritual, 'spiritual_gifts'),
+    ministry_interests: profileValue(profile, spiritual, 'ministry_interests'),
+    prayer_requests: profileValue(profile, spiritual, 'prayer_requests'),
+    privacy_share_contact:
+      profile.privacy_share_contact ?? spiritual.privacy_share_contact ?? spiritual.share_contact_info ?? true,
+    status: member.status ?? 'active',
+  }
+}
+
+export function useMemberForm(initialData = null, isEditMode = false) {
+  const membersStore = useMembersStore()
+  const formData = reactive(defaultFormData())
   const errors = ref({})
-
-  // Loading state
   const isSubmitting = ref(false)
+  const currentMember = ref(initialData)
+  const currentEditMode = ref(isEditMode)
 
-  // Initialize form with data if editing
-  if (initialData && isEditMode) {
-    Object.keys(formData).forEach((key) => {
-      if (initialData[key] !== undefined) {
-        formData[key] = initialData[key]
-      }
-    })
+  hydrate(initialData, isEditMode)
 
-    // Handle nested data if needed
-    if (initialData.personal_info) {
-      formData.first_name = initialData.personal_info.first_name || ''
-      formData.last_name = initialData.personal_info.last_name || ''
-      formData.phone = initialData.personal_info.phone || ''
-      formData.email = initialData.personal_info.email || ''
-      formData.date_of_birth = initialData.personal_info.date_of_birth || null
-      formData.gender = initialData.personal_info.gender || ''
-      formData.marital_status = initialData.personal_info.marital_status || ''
-      formData.occupation = initialData.personal_info.occupation || ''
-      formData.whatsapp_number = initialData.personal_info.whatsapp_number || ''
-      formData.address = initialData.personal_info.address || ''
-      formData.digital_address = initialData.personal_info.digital_address || ''
-      formData.city = initialData.personal_info.city || ''
-      formData.state = initialData.personal_info.state || ''
-      formData.postal_code = initialData.personal_info.postal_code || ''
-      formData.country = initialData.personal_info.country || ''
-    }
+  const isValid = computed(() => Object.keys(errors.value).length === 0)
+  const isFormDirty = computed(() => JSON.stringify(formData) !== JSON.stringify(defaultFormData()))
 
-    if (initialData.spiritual_info) {
-      formData.is_baptized = initialData.spiritual_info.is_baptized || false
-      formData.baptism_date = initialData.spiritual_info.baptism_date || null
-      formData.membership_status = initialData.spiritual_info.membership_status || 'active'
-      formData.membership_date = initialData.spiritual_info.membership_date || null
-      formData.groups = initialData.spiritual_info.groups || []
-      formData.spiritual_gifts = initialData.spiritual_info.spiritual_gifts || ''
-      formData.ministry_interests = initialData.spiritual_info.ministry_interests || ''
-      formData.prayer_requests = initialData.spiritual_info.prayer_requests || ''
-      formData.share_contact_info = initialData.spiritual_info.share_contact_info ?? true
-    }
-
-    formData.status = initialData.status || 'active'
-  }
-
-  // Computed
-  const isValid = computed(() => {
-    return Object.keys(errors.value).length === 0
-  })
-
-  const isFormDirty = computed(() => {
-    if (!initialData) return false
-    return JSON.stringify(formData) !== JSON.stringify(initialData)
-  })
-
-  // Validation rules
   const validationRules = {
-    first_name: [(v) => !!v || 'First name is required'],
-    last_name: [(v) => !!v || 'Last name is required'],
-    phone: [(v) => !!v || 'Phone number is required'],
+    first_name: [(value) => !!value || 'First name is required'],
+    last_name: [(value) => !!value || 'Last name is required'],
+    phone: [(value) => !!value || 'Phone number is required'],
     email: [
-      (v) => !!v || 'Email is required',
-      (v) => !v || /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'Invalid email format',
+      (value) =>
+        !value || /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) || 'Invalid email format',
     ],
-    password: isEditMode
-      ? []
-      : [
-          (v) => !!v || 'Password is required',
-          (v) => !v || v.length >= 6 || 'Password must be at least 6 characters',
-        ],
-    password_confirmation: isEditMode
-      ? []
-      : [
-          (v) => !!v || 'Please confirm your password',
-          (v) => !v || v === formData.password || 'Passwords do not match',
-        ],
+    password: [
+      (value) => !value || value.length >= 8 || 'Password must be at least 8 characters',
+      (value) =>
+        !value ||
+        /[a-z]/.test(value) ||
+        'Password must contain at least one lowercase letter',
+      (value) =>
+        !value ||
+        /[A-Z]/.test(value) ||
+        'Password must contain at least one uppercase letter',
+      (value) => !value || /\d/.test(value) || 'Password must contain at least one number',
+    ],
   }
 
-  // Validate a single field
+  function hydrate(member = null, editMode = isEditMode) {
+    currentMember.value = member
+    currentEditMode.value = editMode
+    Object.assign(formData, editMode ? normalizeMember(member) : defaultFormData())
+    errors.value = {}
+  }
+
   function validateField(field, value) {
     const rules = validationRules[field]
     if (!rules) return true
@@ -143,41 +141,39 @@ export function useMemberForm(initialData = null, isEditMode = false) {
     return true
   }
 
-  // Validate all fields
   function validateForm() {
     errors.value = {}
-    let isValid = true
+    let valid = true
 
     Object.keys(validationRules).forEach((field) => {
       if (!validateField(field, formData[field])) {
-        isValid = false
+        valid = false
       }
     })
 
-    // Additional cross-field validation
-    if (formData.password && formData.password_confirmation) {
-      if (formData.password !== formData.password_confirmation) {
+    if (formData.password || formData.password_confirmation) {
+      if (!formData.password_confirmation) {
+        errors.value.password_confirmation = 'Please confirm your password'
+        valid = false
+      } else if (formData.password !== formData.password_confirmation) {
         errors.value.password_confirmation = 'Passwords do not match'
-        isValid = false
+        valid = false
       }
     }
 
-    return isValid
+    return valid
   }
 
-  // Handle field blur
   function handleFieldBlur(field) {
     validateField(field, formData[field])
   }
 
-  // Handle field input
   function handleFieldInput(field, value) {
     if (errors.value[field]) {
       validateField(field, value)
     }
   }
 
-  // Submit form
   async function submitForm() {
     if (!validateForm()) {
       showToast.error('Please fix the form errors')
@@ -187,21 +183,14 @@ export function useMemberForm(initialData = null, isEditMode = false) {
     isSubmitting.value = true
 
     try {
-      // Prepare data for API
       const submitData = prepareSubmitData()
+      const memberUuid = currentMember.value?.uuid
+      const success =
+        currentEditMode.value && memberUuid
+          ? await membersStore.updateMember(memberUuid, submitData)
+          : await membersStore.createMember(submitData)
 
-      let success
-      if (isEditMode && initialData?.uuid) {
-        success = await membersStore.updateMember(initialData.uuid, submitData)
-      } else {
-        success = await membersStore.createMember(submitData)
-      }
-
-      if (success) {
-        return true
-      }
-
-      return false
+      return Boolean(success)
     } catch (err) {
       console.error('Form submission error:', err)
       return false
@@ -210,10 +199,8 @@ export function useMemberForm(initialData = null, isEditMode = false) {
     }
   }
 
-  // Prepare data for API submission
   function prepareSubmitData() {
     const data = {
-      // Personal Information
       first_name: formData.first_name,
       last_name: formData.last_name,
       phone: formData.phone,
@@ -225,28 +212,23 @@ export function useMemberForm(initialData = null, isEditMode = false) {
       whatsapp_number: formData.whatsapp_number,
       address: formData.address,
       digital_address: formData.digital_address,
-      city: formData.city,
-      state: formData.state,
-      postal_code: formData.postal_code,
-      country: formData.country,
-
-      // Spiritual & Church Info
+      country_id: formData.country_id ? Number(formData.country_id) : null,
+      region_id: formData.region_id ? Number(formData.region_id) : null,
+      city_id: formData.city_id ? Number(formData.city_id) : null,
+      postal_code_id: formData.postal_code_id ? Number(formData.postal_code_id) : null,
       is_baptized: formData.is_baptized,
       baptism_date: formData.baptism_date,
       membership_status: formData.membership_status,
       membership_date: formData.membership_date,
-      groups: formData.groups,
+      groups: formData.groups.map(Number).filter(Boolean),
       spiritual_gifts: formData.spiritual_gifts,
       ministry_interests: formData.ministry_interests,
       prayer_requests: formData.prayer_requests,
-      share_contact_info: formData.share_contact_info,
-
-      // Status
+      privacy_share_contact: formData.privacy_share_contact,
       status: formData.status,
     }
 
-    // Only include password fields in create mode or if password is being changed
-    if (!isEditMode || formData.password) {
+    if (formData.password) {
       data.password = formData.password
       data.password_confirmation = formData.password_confirmation
     }
@@ -254,47 +236,27 @@ export function useMemberForm(initialData = null, isEditMode = false) {
     return data
   }
 
-  // Reset form
   function resetForm() {
-    Object.keys(formData).forEach((key) => {
-      if (key === 'is_baptized' || key === 'share_contact_info') {
-        formData[key] = false
-      } else if (key === 'membership_status' || key === 'status') {
-        formData[key] = 'active'
-      } else if (Array.isArray(formData[key])) {
-        formData[key] = []
-      } else {
-        formData[key] = ''
-      }
-    })
+    Object.assign(formData, defaultFormData())
     errors.value = {}
   }
 
-  // Set form data from member object
   function setFormData(member) {
-    Object.keys(formData).forEach((key) => {
-      if (member[key] !== undefined) {
-        formData[key] = member[key]
-      }
-    })
+    Object.assign(formData, normalizeMember(member))
+    errors.value = {}
   }
 
-  // Clear errors
   function clearErrors() {
     errors.value = {}
   }
 
   return {
-    // State
     formData,
     errors,
     isSubmitting,
-
-    // Computed
     isValid,
     isFormDirty,
-
-    // Actions
+    hydrate,
     validateField,
     validateForm,
     handleFieldBlur,

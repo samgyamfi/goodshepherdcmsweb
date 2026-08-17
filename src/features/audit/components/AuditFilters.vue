@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -13,6 +13,16 @@ const props = defineProps({
 })
 const emit = defineEmits(['apply', 'clear'])
 const draft = reactive({ ...props.filters })
+const categories = ref([
+  { label: 'All categories', value: '' },
+  { label: 'Authentication', value: 'authentication' },
+  { label: 'Support access', value: 'support_access' },
+  { label: 'Members', value: 'member_management' },
+  { label: 'Finance', value: 'finance' },
+  { label: 'Church content', value: 'church_content' },
+  { label: 'Administration', value: 'administration' },
+  { label: 'System', value: 'system' },
+])
 
 watch(
   () => props.filters,
@@ -44,14 +54,9 @@ watch(
         </option>
       </select>
       <select v-model="draft.category" class="h-10 border bg-background px-3 text-sm">
-        <option value="">All categories</option>
-        <option value="authentication">Authentication</option>
-        <option value="support_access">Support access</option>
-        <option value="member_management">Members</option>
-        <option value="finance">Finance</option>
-        <option value="church_content">Church content</option>
-        <option value="administration">Administration</option>
-        <option value="system">System</option>
+        <option v-for="category in categories" :key="category.value" :value="category.value">
+          {{ category.label }}
+        </option>
       </select>
       <select v-model="draft.method" class="h-10 border bg-background px-3 text-sm">
         <option value="">All methods</option>

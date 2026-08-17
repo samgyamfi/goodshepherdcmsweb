@@ -1,4 +1,4 @@
-import { Shield, Tag, Globe, HandCoins, Users, Wallet, FileText, UserRound, CalendarDays, Calendar } from 'lucide-vue-next'
+import { Shield, Tag, Globe, HandCoins, Users, Wallet, FileText, UserRound, Calendar } from 'lucide-vue-next'
 
 /**
  * Settings submenu links configuration
@@ -59,14 +59,6 @@ export const settingsLinks = [
     icon: Calendar,
     description: 'Manage church programs and activities',
     permissions: ['settings.update'],
-  },
-  {
-    id: 'events',
-    name: 'Events Management',
-    path: '/dashboard/settings/events',
-    icon: CalendarDays,
-    description: 'Manage church events and special services',
-    permissions: ['events.update'],
   },
   {
     id: 'welfare-settings',

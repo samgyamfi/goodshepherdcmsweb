@@ -1,16 +1,13 @@
 <script setup>
+import { computed, ref, watch } from 'vue'
 import { useMemberForm } from './composables/useMemberForm.js'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet'
 import { X } from 'lucide-vue-next'
+import { membersService } from '@/services/members/members'
+import { showToast } from '@/utils/toast'
 
 // Section components
 import PersonalInfoSection from './components/sections/PersonalInfoSection.vue'
@@ -37,37 +34,52 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'cancel', 'update:isOpen'])
 
-// Initialize form composable
-const { formData, errors, isSubmitting, submitForm } = useMemberForm(props.member, props.isEditMode)
+const { formData, errors, isSubmitting, submitForm, hydrate } = useMemberForm(
+  props.member,
+  props.isEditMode,
+)
+const formOptions = ref({
+  countries: [],
+  groups: [],
+})
+const optionsLoaded = ref(false)
+const optionsLoading = ref(false)
 
-// Countries list (common countries)
-const countries = [
-  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia',
-  'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus',
-  'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil',
-  'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada',
-  'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
-  'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
-  'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia',
-  'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada',
-  'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India',
-  'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan',
-  'Kenya', 'Kiribati', 'Korea, North', 'Korea, South', 'Kosovo', 'Kuwait', 'Kyrgyzstan', 'Laos',
-  'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg',
-  'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania',
-  'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco',
-  'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua',
-  'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama',
-  'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania',
-  'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines',
-  'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles',
-  'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa',
-  'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan',
-  'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia',
-  'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom',
-  'United States', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen',
-  'Zambia', 'Zimbabwe',
-]
+const groups = computed(() => formOptions.value.groups ?? [])
+
+watch(
+  () => [props.isOpen, props.member?.uuid, props.isEditMode],
+  ([isOpen]) => {
+    if (!isOpen) return
+
+    hydrate(props.member, props.isEditMode)
+    loadFormOptions()
+  },
+  { immediate: true },
+)
+
+async function loadFormOptions() {
+  if (optionsLoaded.value || optionsLoading.value) return
+
+  optionsLoading.value = true
+
+  try {
+    const response = await membersService.getFormOptions()
+
+    if (response.status) {
+      formOptions.value = response.data
+      optionsLoaded.value = true
+      return
+    }
+
+    showToast.error(response.message || 'Could not load member form options')
+  } catch (error) {
+    console.error('Member form options error:', error)
+    showToast.error(error.response?.data?.message || 'Could not load member form options')
+  } finally {
+    optionsLoading.value = false
+  }
+}
 
 // Handle form submission
 async function handleSubmit() {
@@ -80,6 +92,7 @@ async function handleSubmit() {
 
 // Handle cancel/close
 function handleCancel() {
+  hydrate(null, false)
   emit('cancel')
   emit('update:isOpen', false)
 }
@@ -96,7 +109,7 @@ function updateFormData(updates) {
   <Sheet :open="isOpen" @update:open="(value) => emit('update:isOpen', value)">
     <SheetContent
       side="right"
-      class="w-[95vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[1200px] 2xl:w-[1400px] p-0 flex flex-col"
+      class="flex w-[98vw] max-w-none flex-col p-0 sm:w-[96vw] lg:w-[92vw] xl:w-400 2xl:w-450"
     >
       <!-- Header -->
       <SheetHeader class="px-6 py-4 border-b">
@@ -149,7 +162,6 @@ function updateFormData(updates) {
                 <LocationInfoSection
                   :form-data="formData"
                   :errors="errors"
-                  :countries="countries"
                   @update:form-data="updateFormData"
                 />
               </CardContent>
@@ -175,6 +187,7 @@ function updateFormData(updates) {
                 <GroupsSection
                   :form-data="formData"
                   :errors="errors"
+                  :groups="groups"
                   @update:form-data="updateFormData"
                 />
 
@@ -192,10 +205,10 @@ function updateFormData(updates) {
           </div>
 
           <!-- Form Actions -->
-          <div class="flex items-center justify-end gap-3 sticky bottom-0 bg-background pt-4 border-t">
-            <Button type="button" variant="outline" @click="handleCancel">
-              Cancel
-            </Button>
+          <div
+            class="flex items-center justify-end gap-3 sticky bottom-0 bg-background pt-4 border-t"
+          >
+            <Button type="button" variant="outline" @click="handleCancel"> Cancel </Button>
             <Button type="submit" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="flex items-center gap-2">
                 <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

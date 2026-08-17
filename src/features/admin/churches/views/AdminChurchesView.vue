@@ -10,16 +10,35 @@ import { useConfirm } from '@/composables/useConfirm'
 import { showToast } from '@/utils/toast'
 import ChurchesList from '../components/ChurchesList.vue'
 import SupportAccessDialog from '../components/SupportAccessDialog.vue'
-import { Building2 } from 'lucide-vue-next'
+import { Building2, Plus } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+import ChurchFormSheet from '../components/ChurchFormSheet.vue'
 
-const router      = useRouter()
-const adminStore  = useAdminDashboardStore()
+const router = useRouter()
+const adminStore = useAdminDashboardStore()
 const churchStore = useChurchStore()
 const { confirm } = useConfirm()
 
 const activeTab = ref('active')
 const supportDialogOpen = ref(false)
 const supportChurch = ref(null)
+const churchFormOpen = ref(false)
+const selectedChurch = ref(null)
+
+function handleCreateChurch() {
+  selectedChurch.value = null
+  churchFormOpen.value = true
+}
+
+function handleEditChurch(church) {
+  selectedChurch.value = church
+  churchFormOpen.value = true
+}
+
+function handleChurchSaved() {
+  selectedChurch.value = null
+  loadChurches()
+}
 
 function handleSupportAccess(church) {
   supportChurch.value = church
@@ -33,9 +52,9 @@ const {
   pagination: activePagination,
   searchQuery: activeSearch,
   loadChurches,
-  handlePageChange:    handleActivePageChange,
+  handlePageChange: handleActivePageChange,
   handlePerPageChange: handleActivePerPageChange,
-  handleSearch:        handleActiveSearch,
+  handleSearch: handleActiveSearch,
 } = useAdminChurches()
 
 // ── Deleted / trashed churches ─────────────────────────────────────────────────
@@ -45,9 +64,9 @@ const {
   pagination: trashedPagination,
   searchQuery: trashedSearch,
   loadTrashedChurches,
-  handlePageChange:    handleTrashedPageChange,
+  handlePageChange: handleTrashedPageChange,
   handlePerPageChange: handleTrashedPerPageChange,
-  handleSearch:        handleTrashedSearch,
+  handleSearch: handleTrashedSearch,
 } = useAdminTrashedChurches()
 
 function onTabChange(tab) {
@@ -72,13 +91,13 @@ async function handleAccessSettings(church) {
 
 async function handleToggleStatus(church) {
   const ok = await confirm({
-    title:        `${church.is_active ? 'Deactivate' : 'Activate'} ${church.name}?`,
-    description:  church.is_active
+    title: `${church.is_active ? 'Deactivate' : 'Activate'} ${church.name}?`,
+    description: church.is_active
       ? 'Members of this church will lose access to the church dashboard until it is reactivated.'
       : 'This church and its members will regain access to the church dashboard.',
     confirmLabel: church.is_active ? 'Deactivate' : 'Activate',
-    cancelLabel:  'Cancel',
-    variant:      church.is_active ? 'destructive' : 'default',
+    cancelLabel: 'Cancel',
+    variant: church.is_active ? 'destructive' : 'default',
   })
   if (!ok) return
 
@@ -93,11 +112,11 @@ async function handleToggleStatus(church) {
 
 async function handleDelete(church) {
   const ok = await confirm({
-    title:        `Move "${church.name}" to Trash?`,
-    description:  'The church will be deactivated and can be restored later from the Deleted tab.',
+    title: `Move "${church.name}" to Trash?`,
+    description: 'The church will be deactivated and can be restored later from the Deleted tab.',
     confirmLabel: 'Move to Trash',
-    cancelLabel:  'Cancel',
-    variant:      'destructive',
+    cancelLabel: 'Cancel',
+    variant: 'destructive',
   })
   if (!ok) return
 
@@ -112,10 +131,10 @@ async function handleDelete(church) {
 
 async function handleBulkDelete(ids) {
   const ok = await confirm({
-    title:        `Move ${ids.length} church(es) to Trash?`,
-    description:  'They can be restored from the Deleted tab.',
+    title: `Move ${ids.length} church(es) to Trash?`,
+    description: 'They can be restored from the Deleted tab.',
     confirmLabel: 'Move to Trash',
-    variant:      'destructive',
+    variant: 'destructive',
   })
   if (!ok) return
 
@@ -129,10 +148,10 @@ async function handleBulkDelete(ids) {
 // ── Deleted tab actions ───────────────────────────────────────────────────────
 async function handleRestore(church) {
   const ok = await confirm({
-    title:        `Restore "${church.name}"?`,
-    description:  'The church will be restored and become accessible again.',
+    title: `Restore "${church.name}"?`,
+    description: 'The church will be restored and become accessible again.',
     confirmLabel: 'Restore',
-    cancelLabel:  'Cancel',
+    cancelLabel: 'Cancel',
   })
   if (!ok) return
 
@@ -147,11 +166,12 @@ async function handleRestore(church) {
 
 async function handleForceDelete(church) {
   const ok = await confirm({
-    title:        `Permanently delete "${church.name}"?`,
-    description:  'This will erase the church and ALL its data (members, events, donations, etc.) forever. This cannot be undone.',
+    title: `Permanently delete "${church.name}"?`,
+    description:
+      'This will erase the church and ALL its data (members, events, donations, etc.) forever. This cannot be undone.',
     confirmLabel: 'Delete Forever',
-    cancelLabel:  'Cancel',
-    variant:      'destructive',
+    cancelLabel: 'Cancel',
+    variant: 'destructive',
   })
   if (!ok) return
 
@@ -166,7 +186,7 @@ async function handleForceDelete(church) {
 
 async function handleBulkRestore(ids) {
   const ok = await confirm({
-    title:        `Restore ${ids.length} church(es)?`,
+    title: `Restore ${ids.length} church(es)?`,
     confirmLabel: 'Restore All',
   })
   if (!ok) return
@@ -180,10 +200,10 @@ async function handleBulkRestore(ids) {
 
 async function handleBulkForceDelete(ids) {
   const ok = await confirm({
-    title:        `Permanently delete ${ids.length} church(es)?`,
-    description:  'This action cannot be undone. All data will be erased forever.',
+    title: `Permanently delete ${ids.length} church(es)?`,
+    description: 'This action cannot be undone. All data will be erased forever.',
     confirmLabel: 'Delete Forever',
-    variant:      'destructive',
+    variant: 'destructive',
   })
   if (!ok) return
 
@@ -208,6 +228,9 @@ onMounted(loadChurches)
         <h1 class="text-xl font-bold text-foreground">Churches</h1>
         <p class="text-sm text-muted-foreground">Manage all churches registered on the platform</p>
       </div>
+      <Button class="ml-auto" @click="handleCreateChurch"
+        ><Plus class="mr-2 h-4 w-4" />Create church</Button
+      >
     </div>
 
     <!-- Active / Deleted tabs -->
@@ -229,6 +252,7 @@ onMounted(loadChurches)
           @page-change="handleActivePageChange"
           @per-page-change="handleActivePerPageChange"
           @view-landing="handleViewLanding"
+          @edit="handleEditChurch"
           @access-settings="handleAccessSettings"
           @support-access="handleSupportAccess"
           @toggle-status="handleToggleStatus"
@@ -257,5 +281,10 @@ onMounted(loadChurches)
     </TabsRoot>
 
     <SupportAccessDialog v-model:open="supportDialogOpen" :church="supportChurch" />
+    <ChurchFormSheet
+      v-model:open="churchFormOpen"
+      :church="selectedChurch"
+      @saved="handleChurchSaved"
+    />
   </div>
 </template>

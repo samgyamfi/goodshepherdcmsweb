@@ -163,7 +163,7 @@ function sourceLabel(permission) {
   <Sheet :open="isOpen" @update:open="handleOpenChange">
     <SheetContent
       side="right"
-      class="w-[96vw] sm:w-[88vw] md:w-[760px] lg:w-[900px] p-0 flex flex-col"
+      class="w-[96vw] sm:w-[92vw] lg:w-[86vw] xl:w-[1280px] 2xl:w-[1500px] p-0 flex flex-col"
     >
       <SheetHeader class="px-6 py-5 border-b">
         <div class="flex items-start justify-between gap-4">

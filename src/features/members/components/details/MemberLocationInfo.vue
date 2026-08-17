@@ -27,7 +27,7 @@ const hasLocationInfo = computed(() => {
     m?.address ||
     m?.digital_address ||
     m?.city ||
-    m?.state ||
+    m?.region ||
     m?.country ||
     m?.postal_code
   )
@@ -59,9 +59,9 @@ const hasLocationInfo = computed(() => {
           <p class="text-sm text-muted-foreground">City</p>
           <span>{{ member.city }}</span>
         </div>
-        <div v-if="member.state" class="space-y-1">
+        <div v-if="member.region" class="space-y-1">
           <p class="text-sm text-muted-foreground">State/Region</p>
-          <span>{{ member.state }}</span>
+          <span>{{ member.region }}</span>
         </div>
         <div v-if="member.postal_code" class="space-y-1">
           <p class="text-sm text-muted-foreground">Postal Code</p>

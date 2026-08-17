@@ -38,6 +38,14 @@ api.interceptors.request.use(
       config.headers['X-Church-UUID'] = churchStore.church.uuid
     }
 
+    if (config.data instanceof FormData) {
+      if (typeof config.headers.setContentType === 'function') {
+        config.headers.setContentType(undefined)
+      } else {
+        delete config.headers['Content-Type']
+      }
+    }
+
     return config
   },
   (error) => {

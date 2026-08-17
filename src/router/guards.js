@@ -18,7 +18,7 @@ export async function authGuard(to) {
   const authStore = useAuthStore()
   const churchStore = useChurchStore()
 
-  if (authStore.token && !authStore.user) {
+  if (authStore.token) {
     await authStore.initializeAuth()
   }
 

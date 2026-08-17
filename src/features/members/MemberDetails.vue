@@ -1,12 +1,7 @@
 <script setup>
+import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
 import { Pencil, X } from 'lucide-vue-next'
 
@@ -30,6 +25,27 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'edit'])
 
+const displayMember = computed(() => {
+  if (!props.member) return null
+
+  const profile = props.member.profile ?? {}
+  const personalInfo = profile.personal_info ?? props.member.personal_info ?? {}
+  const spiritualInfo = profile.spiritual_info ?? props.member.spiritual_info ?? {}
+
+  return {
+    ...props.member,
+    ...personalInfo,
+    ...profile,
+    ...spiritualInfo,
+    country: profile.country?.name ?? profile.country_name ?? props.member.country,
+    region: profile.region_reference?.name ?? null,
+    city: profile.city_reference?.name ?? null,
+    postal_code: profile.postal_code_reference?.name ?? null,
+    privacy_share_contact:
+      profile.privacy_share_contact ?? props.member.privacy_share_contact ?? false,
+  }
+})
+
 /**
  * Handle edit click
  */
@@ -47,7 +63,10 @@ function handleClose() {
 
 <template>
   <Sheet :open="isOpen" @update:open="handleClose">
-    <SheetContent side="right" class="w-[95vw] sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:w-[1100px] 2xl:w-[1300px] p-0 flex flex-col">
+    <SheetContent
+      side="right"
+      class="w-[96vw] sm:w-[92vw] lg:w-[86vw] xl:w-[85vw] 2xl:w-[75vw] p-0 flex flex-col"
+    >
       <!-- Header -->
       <SheetHeader class="px-6 py-4 border-b">
         <div class="flex items-center justify-between">
@@ -62,9 +81,9 @@ function handleClose() {
 
       <!-- Content - Scrollable -->
       <div class="flex-1 overflow-y-auto px-6 py-4">
-        <div v-if="member" class="space-y-6">
+        <div v-if="displayMember" class="space-y-6">
           <!-- Profile Card -->
-          <MemberProfileCard :member="member" />
+          <MemberProfileCard :member="displayMember" />
 
           <!-- Action Buttons -->
           <div class="flex justify-end gap-2">
@@ -77,24 +96,22 @@ function handleClose() {
           <Separator />
 
           <!-- Personal Information -->
-          <MemberPersonalInfo :member="member" />
+          <MemberPersonalInfo :member="displayMember" />
 
           <!-- Location Information -->
-          <MemberLocationInfo :member="member" />
+          <MemberLocationInfo :member="displayMember" />
 
           <!-- Spiritual Information -->
-          <MemberSpiritualInfo :member="member" />
+          <MemberSpiritualInfo :member="displayMember" />
 
           <!-- Groups List -->
-          <MemberGroupsList :member="member" />
+          <MemberGroupsList :member="displayMember" />
         </div>
 
         <div v-else class="flex items-center justify-center h-full">
           <div class="text-center space-y-2">
             <h3 class="text-lg font-semibold">Member Not Found</h3>
-            <p class="text-muted-foreground">
-              The member information could not be loaded.
-            </p>
+            <p class="text-muted-foreground">The member information could not be loaded.</p>
           </div>
         </div>
       </div>

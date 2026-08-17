@@ -54,6 +54,18 @@ export default [
         meta: { breadcrumb: 'Roles & Permissions' },
       },
       {
+        path: 'groups',
+        name: 'admin-groups',
+        component: () => import('./groups/views/AdminGroupManagementView.vue'),
+        meta: { breadcrumb: 'Group Administration' },
+      },
+      {
+        path: 'geography',
+        name: 'admin-geography',
+        component: () => import('./geography/views/GeographyManagementView.vue'),
+        meta: { breadcrumb: 'Geography' },
+      },
+      {
         path: 'audit-logs',
         name: 'admin-audit-logs',
         component: () => import('@/features/audit/AuditLogsView.vue'),

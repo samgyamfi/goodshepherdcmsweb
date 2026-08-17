@@ -49,7 +49,7 @@ const hasSpiritualInfo = computed(() => {
     m?.spiritual_gifts ||
     m?.ministry_interests ||
     m?.prayer_requests ||
-    m?.share_contact_info !== undefined
+    m?.privacy_share_contact !== undefined
   )
 })
 </script>
@@ -87,7 +87,7 @@ const hasSpiritualInfo = computed(() => {
         </div>
         <div class="space-y-1">
           <p class="text-sm text-muted-foreground">Privacy</p>
-          <span>{{ member.share_contact_info ? 'Contact info is shared' : 'Contact info is private' }}</span>
+          <span>{{ member.privacy_share_contact ? 'Contact info is shared' : 'Contact info is private' }}</span>
         </div>
       </div>
 
